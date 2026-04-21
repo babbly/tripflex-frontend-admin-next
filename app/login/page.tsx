@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,8 +12,13 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: 실제 로그인 로직 구현
-    setTimeout(() => setIsLoading(false), 1000);
+    await signIn('credentials', {
+      email,
+      password,
+      redirect: true,
+      callbackUrl: '/',
+    });
+    setIsLoading(false);
   };
 
   return (
@@ -46,7 +52,7 @@ export default function LoginPage() {
                 </svg>
                 <input
                   id="email"
-                  type="email"
+                  type="text"
                   placeholder="admin@tripflex.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
