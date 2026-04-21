@@ -2,7 +2,14 @@
 const nextConfig = {
   // For local development, basePath is '/'
   // This file will be overwritten during deployment with the appropriate basePath
-  images: {},
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+    ],
+  },
   output: 'standalone',
 };
 

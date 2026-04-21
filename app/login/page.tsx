@@ -16,7 +16,7 @@ export default function LoginPage() {
       email,
       password,
       redirect: true,
-      callbackUrl: '/',
+      callbackUrl: '/banner',
     });
     setIsLoading(false);
   };

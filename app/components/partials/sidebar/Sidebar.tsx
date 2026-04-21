@@ -51,7 +51,7 @@ export function Sidebar() {
                   : 'hover:bg-[#2E3348] hover:text-white'
               )}
             >
-              <item.icon className={cn('w-5 h-5 mr-3', isActive ? 'text-[#3E97FF]' : 'text-current')} />
+              <item.icon className={cn('w-5 h-5 mr-3', isActive ? 'text-[#4186FF]' : 'text-current')} />
               <span className="font-medium text-sm">{item.name}</span>
             </Link>
           );
