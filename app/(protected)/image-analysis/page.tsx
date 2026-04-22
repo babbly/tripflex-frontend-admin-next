@@ -59,12 +59,12 @@ export default function ImageAnalysisPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200" placeholder="디바이스 ID 검색..." />
+            <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="디바이스 ID 검색..." />
           </div>
 
           {/* Country Select */}
           <div className="relative w-[140px]">
-            <select className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-600">
+            <select className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-[#71717A]">
               <option value="">국가 선택</option>
               <option value="JP">일본</option>
               <option value="FR">프랑스</option>
@@ -80,7 +80,7 @@ export default function ImageAnalysisPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Calendar className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200 text-gray-600" placeholder="시작 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+            <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="시작 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
           </div>
 
           {/* End Date */}
@@ -88,12 +88,12 @@ export default function ImageAnalysisPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Calendar className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200 text-gray-600" placeholder="종료 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+            <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="종료 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
           </div>
         </div>
 
         {/* Download Button */}
-        <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
+        <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[38px] px-4">
           <Download className="w-4 h-4 mr-2" />
           전체 JSON 다운로드
         </Button>
@@ -129,13 +129,13 @@ export default function ImageAnalysisPage() {
                     {record.analysisDate}
                   </td>
                   <td className="p-4 text-center">
-                    <Button variant="ghost" className="bg-[#EFF6FF] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] h-8 px-3 text-xs font-medium">
+                    <Button variant="ghost" className="flex items-start py-[6px] px-[12px] bg-[#EEF1FF] rounded-[5px] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] text-[13px] font-[600] leading-normal not-italic h-auto">
                       다운로드
                     </Button>
                   </td>
                   <td className="p-4 text-center">
                     <Link href={`/image-analysis/${record.id}`}>
-                      <Button variant="ghost" className="bg-[#EFF6FF] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] h-8 px-4 text-xs font-medium">
+                      <Button variant="ghost" className="flex items-start py-[6px] px-[12px] bg-[#EEF1FF] rounded-[5px] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] text-[13px] font-[600] leading-normal not-italic h-auto">
                         보기
                       </Button>
                     </Link>

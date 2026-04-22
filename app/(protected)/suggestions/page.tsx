@@ -68,12 +68,12 @@ export default function SuggestionsPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200" placeholder="제안 내용 검색..." />
+            <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="제안 내용 검색..." />
           </div>
 
           {/* Category Select */}
           <div className="relative w-[140px]">
-            <select className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-[#4186FF] focus:border-[#4186FF] text-gray-600">
+            <select className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-[#4186FF] focus:border-[#4186FF] text-[#71717A]">
               <option value="">카테고리</option>
               <option value="translation">잘못된 번역</option>
               <option value="price">가격/환율 오류</option>
@@ -86,7 +86,7 @@ export default function SuggestionsPage() {
 
           {/* Status Select */}
           <div className="relative w-[140px]">
-            <select className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-[#4186FF] focus:border-[#4186FF] text-gray-600">
+            <select className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-[#4186FF] focus:border-[#4186FF] text-[#71717A]">
               <option value="">확인 상태</option>
               <option value="confirmed">확인됨</option>
               <option value="unconfirmed">미확인</option>
@@ -101,7 +101,7 @@ export default function SuggestionsPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Calendar className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200 text-gray-600" placeholder="시작 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+            <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="시작 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
           </div>
 
           {/* End Date */}
@@ -109,7 +109,7 @@ export default function SuggestionsPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Calendar className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200 text-gray-600" placeholder="종료 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
+            <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="종료 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
           </div>
         </div>
 

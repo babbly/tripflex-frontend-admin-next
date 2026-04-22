@@ -75,13 +75,13 @@ export default function ActivityLogPage() {
           </div>
           <Input 
             type="text" 
-            className="pl-9 h-10 border-gray-200 bg-white" 
+            className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" 
             placeholder="작업자 및 대상자 검색" 
           />
         </div>
 
         <div className="relative w-[200px]">
-          <select className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-[#4186FF] focus:border-[#4186FF] text-gray-500">
+          <select className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-[#4186FF] focus:border-[#4186FF] text-[#71717A]">
             <option value="">작업 유형</option>
             <option value="권한 변경">권한 변경</option>
             <option value="계정 수정">계정 수정</option>
@@ -99,7 +99,7 @@ export default function ActivityLogPage() {
           </div>
           <Input 
             type="text" 
-            className="pl-9 h-10 border-gray-200 bg-white text-gray-500" 
+            className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" 
             placeholder="시작 날짜" 
             onFocus={(e) => e.target.type = 'date'}
             onBlur={(e) => !e.target.value && (e.target.type = 'text')}
@@ -112,7 +112,7 @@ export default function ActivityLogPage() {
           </div>
           <Input 
             type="text" 
-            className="pl-9 h-10 border-gray-200 bg-white text-gray-500" 
+            className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" 
             placeholder="종료 날짜" 
             onFocus={(e) => e.target.type = 'date'}
             onBlur={(e) => !e.target.value && (e.target.type = 'text')}

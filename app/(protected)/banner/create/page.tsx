@@ -23,11 +23,11 @@ export default function BannerCreatePage() {
           <PageTitle>배너 추가</PageTitle>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={() => router.back()} className="px-6 border-gray-300 text-gray-700">
+          <Button variant="outline" onClick={() => router.back()} className="h-[38px] px-6 rounded-[6px] border-gray-300 text-gray-700">
             취소
           </Button>
-          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal px-6">
-            <Check className="w-4 h-4 mr-2" />
+          <Button className="flex items-center justify-center gap-[6px] h-[38px] py-[10px] px-[16px] rounded-[6px] bg-[#4186FF] hover:bg-blue-600 text-[#FFFFFF] text-[14px] font-[600] leading-normal">
+            <Check className="w-4 h-4" />
             저장
           </Button>
         </div>
@@ -35,25 +35,25 @@ export default function BannerCreatePage() {
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Column: Form */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm p-8 space-y-8">
-          <h3 className="text-[15px] font-[700] text-[#18181B] leading-normal not-italic border-b pb-4">기본 정보</h3>
+        <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm p-[24px] flex flex-col gap-[20px]">
+          <h3 className="text-[15px] font-[700] text-[#18181B] leading-normal not-italic">기본 정보</h3>
           
-          <div className="space-y-6">
+          <div className="flex flex-col gap-[20px]">
             <div>
               <label className="block text-[13px] font-[600] text-[#18181B] leading-normal not-italic mb-2">
                 배너 제목 <span className="text-[#18181B]">*</span>
               </label>
-              <Input placeholder="배너 제목을 입력하세요" className="h-11" />
+              <Input placeholder="배너 제목을 입력하세요" className="h-11 placeholder:text-[#71717A]" />
             </div>
 
             <div>
               <label className="block text-[13px] font-[600] text-[#18181B] leading-normal not-italic mb-2">부제목</label>
-              <Input placeholder="부제목을 입력하세요" className="h-11" />
+              <Input placeholder="부제목을 입력하세요" className="h-11 placeholder:text-[#71717A]" />
             </div>
 
             <div>
               <label className="block text-[13px] font-[600] text-[#18181B] leading-normal not-italic mb-2">태그 작성</label>
-              <Input placeholder="태그를 입력하세요" className="h-11" />
+              <Input placeholder="태그를 입력하세요" className="h-11 placeholder:text-[#71717A]" />
             </div>
 
             <div>
@@ -73,12 +73,12 @@ export default function BannerCreatePage() {
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <LinkIcon className="w-4 h-4 text-gray-400" />
                 </div>
-                <Input type="url" placeholder="https://" className="pl-10 h-11" />
+                <Input type="url" placeholder="https://" className="pl-10 h-11 placeholder:text-[#71717A]" />
               </div>
             </div>
 
-            <div className="pt-2">
-              <label className="block text-[13px] font-[600] text-[#18181B] leading-normal not-italic mb-3">활성화</label>
+            <div>
+              <label className="block text-[13px] font-[600] text-[#18181B] leading-normal not-italic mb-2">활성화</label>
               <div className="flex items-center space-x-3">
                 <Switch checked={isActive} onCheckedChange={setIsActive} />
                 <span className="text-[14px] text-gray-600">배너를 즉시 노출합니다</span>
@@ -89,8 +89,8 @@ export default function BannerCreatePage() {
 
         {/* Right Column: Image Upload */}
         <div className="w-full lg:w-[380px] flex-shrink-0">
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8 space-y-6">
-            <h3 className="text-[15px] font-[700] text-[#18181B] leading-normal not-italic border-b pb-4">배너 이미지</h3>
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-[24px] flex flex-col gap-[20px]">
+            <h3 className="text-[15px] font-[700] text-[#18181B] leading-normal not-italic">배너 이미지</h3>
             
             <div className="border border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer">
               <div className="w-12 h-12 bg-[#eef1ff] text-[#4186FF] rounded-full flex items-center justify-center mb-4">
@@ -105,7 +105,7 @@ export default function BannerCreatePage() {
               <span className="font-[600]">파일 선택</span>
             </Button>
 
-            <div className="pt-4">
+            <div>
               <h4 className="text-[13px] font-[600] text-gray-700 mb-3">이미지 가이드</h4>
               <ul className="text-[12px] text-gray-500 space-y-2.5">
                 <li className="flex items-center">
