@@ -27,7 +27,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import Link from 'next/link';
-
+import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
 interface Banner {
   id: string;
   image: string;
@@ -68,8 +68,8 @@ const SortableTableRow = ({ banner, onToggle, onDelete, onEdit }: { banner: Bann
           variant="secondary" 
           className={
             banner.tag === '프로모션'
-              ? 'bg-[#eef1ff] text-[#1c2340] hover:bg-[#eef1ff]'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-100'
+              ? 'bg-[#eef1ff] text-[#1C2340] text-[11px] font-[600] leading-normal hover:bg-[#eef1ff]'
+              : 'bg-gray-100 text-gray-700 text-[11px] font-[600] leading-normal hover:bg-gray-100'
           }
         >
           {banner.tag}
@@ -209,15 +209,15 @@ export default function BannerPage() {
           <div className="overflow-x-auto border-b border-gray-200">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b text-[#71717A] text-[12px] font-[600] whitespace-nowrap">
-                  <th className="p-4 text-center w-10">순서</th>
-                  <th className="p-4">이미지</th>
-                  <th className="p-4">배너 문구</th>
-                  <th className="p-4">태그</th>
-                  <th className="p-4">게시 기간</th>
-                  <th className="p-4">활성화</th>
-                  <th className="p-4">관리</th>
-                </tr>
+                <AdminTableHeaderRow>
+                  <AdminTableHead className="text-center w-10">순서</AdminTableHead>
+                  <AdminTableHead>이미지</AdminTableHead>
+                  <AdminTableHead>배너 문구</AdminTableHead>
+                  <AdminTableHead>태그</AdminTableHead>
+                  <AdminTableHead>게시 기간</AdminTableHead>
+                  <AdminTableHead>활성화</AdminTableHead>
+                  <AdminTableHead>관리</AdminTableHead>
+                </AdminTableHeaderRow>
               </thead>
               <tbody>
                 <SortableContext items={paginatedBanners.map((b) => b.id)} strategy={verticalListSortingStrategy}>
@@ -274,11 +274,13 @@ export default function BannerPage() {
     <div className="w-full space-y-8 pb-12">
       <div className="flex flex-col space-y-4">
         <PageTitle>홈 배너 관리</PageTitle>
-        <div className="relative w-full max-w-md">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <Search className="w-5 h-5 text-gray-400" />
-          </div>
-          <Input type="text" className="pl-10 h-11" placeholder="배너 문구 검색..." />
+        <div className="flex items-center w-[280px] h-[40px] px-[14px] py-[10px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
+          <Search className="w-5 h-5 text-[#71717A] shrink-0" />
+          <input 
+            type="text" 
+            className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]" 
+            placeholder="배너 문구 검색..." 
+          />
         </div>
       </div>
 

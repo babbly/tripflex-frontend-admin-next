@@ -15,7 +15,7 @@ export default function Topbar() {
         </span>
         <button 
           onClick={() => signOut({ callbackUrl: '/login' })}
-          className="bg-[#4186FF] hover:bg-blue-600 text-white flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+          className="bg-[#4186FF] hover:bg-blue-600 text-white flex items-center justify-center gap-2 h-[38px] px-[16px] py-[10px] rounded-[6px] text-[14px] font-[600] leading-normal transition-colors"
         >
           <LogOut className="w-4 h-4" />
           로그아웃

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { EditButton, DeleteButton } from '@/components/ui/action-buttons';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
 
 interface Account {
   id: string;
@@ -103,13 +104,13 @@ export default function AccountsPage() {
           <div className="overflow-x-auto border-b border-gray-200">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b text-[#71717A] text-[12px] font-[600] whitespace-nowrap">
-                  <th className="p-4">이메일</th>
-                  <th className="p-4">이름</th>
-                  <th className="p-4">권한 선택</th>
-                  <th className="p-4 w-24 text-center">상태</th>
-                  <th className="p-4 w-24 text-center">관리</th>
-                </tr>
+                <AdminTableHeaderRow>
+                  <AdminTableHead>이메일</AdminTableHead>
+                  <AdminTableHead>이름</AdminTableHead>
+                  <AdminTableHead>권한 선택</AdminTableHead>
+                  <AdminTableHead className="w-24 text-center">상태</AdminTableHead>
+                  <AdminTableHead className="w-24 text-center">관리</AdminTableHead>
+                </AdminTableHeaderRow>
               </thead>
               <tbody>
                 {accounts.map((account) => (

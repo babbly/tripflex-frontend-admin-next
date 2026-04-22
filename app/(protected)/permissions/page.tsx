@@ -8,7 +8,7 @@ import { EditButton, DeleteButton } from '@/components/ui/action-buttons';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-
+import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
 interface Role {
   id: string;
   name: string;
@@ -64,10 +64,10 @@ export default function PermissionsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200 text-[#71717A] text-[12px] font-[600] whitespace-nowrap">
-                  <th className="p-4">권한명</th>
-                  <th className="p-4 w-32 text-center">관리</th>
-                </tr>
+                <AdminTableHeaderRow className="border-gray-200">
+                  <AdminTableHead>권한명</AdminTableHead>
+                  <AdminTableHead className="w-32 text-center">관리</AdminTableHead>
+                </AdminTableHeaderRow>
               </thead>
               <tbody>
                 {roles.map((role) => (
@@ -133,12 +133,12 @@ export default function PermissionsPage() {
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <table className="w-full text-left text-sm border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-[#71717A] text-[12px] font-[600]">
-                    <th className="p-3">페이지</th>
-                    <th className="p-3 text-center">읽기</th>
-                    <th className="p-3 text-center">쓰기</th>
-                    <th className="p-3 text-center">삭제</th>
-                  </tr>
+                  <AdminTableHeaderRow className="border-gray-200 whitespace-normal">
+                    <AdminTableHead className="p-3">페이지</AdminTableHead>
+                    <AdminTableHead className="p-3 text-center">읽기</AdminTableHead>
+                    <AdminTableHead className="p-3 text-center">쓰기</AdminTableHead>
+                    <AdminTableHead className="p-3 text-center">삭제</AdminTableHead>
+                  </AdminTableHeaderRow>
                 </thead>
                 <tbody>
                   {permissions.map((p) => (

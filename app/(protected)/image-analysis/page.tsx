@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Search, Calendar, Download, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-
+import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
 interface AnalysisRecord {
   id: string;
   deviceId: string;
@@ -103,14 +103,14 @@ export default function ImageAnalysisPage() {
         <div className="overflow-x-auto border-b border-gray-200">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b text-[#71717A] text-[12px] font-[600] whitespace-nowrap">
-                <th className="p-4 w-24">미리보기</th>
-                <th className="p-4">디바이스 ID</th>
-                <th className="p-4">국가</th>
-                <th className="p-4">분석 일시</th>
-                <th className="p-4 w-24 text-center">JSON</th>
-                <th className="p-4 w-24 text-center">상세</th>
-              </tr>
+              <AdminTableHeaderRow>
+                <AdminTableHead className="w-24">미리보기</AdminTableHead>
+                <AdminTableHead>디바이스 ID</AdminTableHead>
+                <AdminTableHead>국가</AdminTableHead>
+                <AdminTableHead>분석 일시</AdminTableHead>
+                <AdminTableHead className="w-24 text-center">JSON</AdminTableHead>
+                <AdminTableHead className="w-24 text-center">상세</AdminTableHead>
+              </AdminTableHeaderRow>
             </thead>
             <tbody>
               {records.map((record) => (

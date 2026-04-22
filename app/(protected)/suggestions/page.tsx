@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Search, Calendar, Download, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-
+import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
 interface SuggestionRecord {
   id: string;
   deviceId: string;
@@ -124,15 +124,15 @@ export default function SuggestionsPage() {
         <div className="overflow-x-auto border-b border-gray-200">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b text-[#71717A] text-[12px] font-[600] whitespace-nowrap">
-                <th className="p-4 w-24">이미지</th>
-                <th className="p-4">디바이스 ID</th>
-                <th className="p-4">카테고리</th>
-                <th className="p-4">상세 내용</th>
-                <th className="p-4">제안 일시</th>
-                <th className="p-4 w-24 text-center">확인 여부</th>
-                <th className="p-4 w-24 text-center">상세</th>
-              </tr>
+              <AdminTableHeaderRow>
+                <AdminTableHead className="w-24">이미지</AdminTableHead>
+                <AdminTableHead>디바이스 ID</AdminTableHead>
+                <AdminTableHead>카테고리</AdminTableHead>
+                <AdminTableHead>상세 내용</AdminTableHead>
+                <AdminTableHead>제안 일시</AdminTableHead>
+                <AdminTableHead className="w-24 text-center">확인 여부</AdminTableHead>
+                <AdminTableHead className="w-24 text-center">상세</AdminTableHead>
+              </AdminTableHeaderRow>
             </thead>
             <tbody>
               {records.map((record) => (

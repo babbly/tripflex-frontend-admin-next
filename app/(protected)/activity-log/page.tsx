@@ -5,7 +5,7 @@ import { PageTitle } from '@/components/ui/page-title';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-
+import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
 interface ActivityLog {
   id: string;
   time: string;
@@ -125,14 +125,14 @@ export default function ActivityLogPage() {
         <div className="overflow-x-auto border-b border-gray-200">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b text-[#71717A] text-[12px] font-[600] whitespace-nowrap">
-                <th className="p-4">시간</th>
-                <th className="p-4">작업 유형</th>
-                <th className="p-4">작업자</th>
-                <th className="p-4">작업자 이메일</th>
-                <th className="p-4">대상자</th>
-                <th className="p-4">대상자 이메일</th>
-              </tr>
+              <AdminTableHeaderRow>
+                <AdminTableHead>시간</AdminTableHead>
+                <AdminTableHead>작업 유형</AdminTableHead>
+                <AdminTableHead>작업자</AdminTableHead>
+                <AdminTableHead>작업자 이메일</AdminTableHead>
+                <AdminTableHead>대상자</AdminTableHead>
+                <AdminTableHead>대상자 이메일</AdminTableHead>
+              </AdminTableHeaderRow>
             </thead>
             <tbody>
               {logs.map((log) => (
