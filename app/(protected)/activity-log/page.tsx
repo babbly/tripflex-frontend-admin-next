@@ -121,8 +121,8 @@ export default function ActivityLogPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
-        <div className="overflow-x-auto border-b border-gray-200">
+      <div className="bg-white rounded-lg border border-gray-200 flex flex-col">
+        <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <AdminTableHeaderRow>
@@ -136,7 +136,7 @@ export default function ActivityLogPage() {
             </thead>
             <tbody>
               {logs.map((log) => (
-                <tr key={log.id} className="border-b bg-white hover:bg-gray-50">
+                <tr key={log.id} className="border-b last:border-0 bg-white hover:bg-gray-50">
                   <td className="p-4 text-sm font-medium text-gray-900">{log.time}</td>
                   <td className="p-4 text-sm text-gray-600">{log.actionType}</td>
                   <td className="p-4 text-sm text-gray-600">{log.workerName}</td>

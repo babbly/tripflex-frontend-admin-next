@@ -60,7 +60,7 @@ export default function PermissionsPage() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
+        <div className="bg-white rounded-lg border border-gray-200 flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>

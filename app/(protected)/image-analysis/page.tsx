@@ -99,8 +99,8 @@ export default function ImageAnalysisPage() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
-        <div className="overflow-x-auto border-b border-gray-200">
+      <div className="bg-white rounded-lg border border-gray-200 flex flex-col">
+        <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <AdminTableHeaderRow>
@@ -114,7 +114,7 @@ export default function ImageAnalysisPage() {
             </thead>
             <tbody>
               {records.map((record) => (
-                <tr key={record.id} className="border-b bg-white hover:bg-gray-50">
+                <tr key={record.id} className="border-b last:border-0 bg-white hover:bg-gray-50">
                   <td className="p-4">
                     <div className="w-[42px] h-[42px] bg-gray-200 rounded-md"></div>
                   </td>

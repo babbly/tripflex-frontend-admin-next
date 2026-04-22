@@ -37,7 +37,7 @@ export default function SuggestionDetailPage() {
       </div>
 
       {/* Info Card */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm flex flex-col space-y-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-8">
             <div>

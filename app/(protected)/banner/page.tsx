@@ -48,7 +48,7 @@ const SortableTableRow = ({ banner, onToggle, onDelete, onEdit }: { banner: Bann
   };
 
   return (
-    <tr ref={setNodeRef} style={style} className="border-b bg-white hover:bg-gray-50 group">
+    <tr ref={setNodeRef} style={style} className="border-b last:border-0 bg-white hover:bg-gray-50 group">
       <td className="p-4 w-10 text-center">
         <button {...attributes} {...listeners} className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none">
           <GripVertical className="w-5 h-5" />
@@ -204,9 +204,9 @@ export default function BannerPage() {
     const paginatedBanners = banners.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
     return (
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm mt-4 flex flex-col">
+      <div className="bg-white rounded-lg border border-gray-200 flex flex-col">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div className="overflow-x-auto border-b border-gray-200">
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <AdminTableHeaderRow>
@@ -271,8 +271,8 @@ export default function BannerPage() {
   };
 
   return (
-    <div className="w-full space-y-8 pb-12">
-      <div className="flex flex-col space-y-4">
+    <div className="w-full flex flex-col gap-[24px]">
+      <div className="flex flex-col gap-[24px]">
         <PageTitle>홈 배너 관리</PageTitle>
         <div className="flex items-center w-[280px] h-[40px] px-[14px] py-[10px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
           <Search className="w-5 h-5 text-[#71717A] shrink-0" />
@@ -284,8 +284,8 @@ export default function BannerPage() {
         </div>
       </div>
 
-      <section>
-        <div className="flex justify-between items-center mb-2">
+      <section className="flex flex-col gap-[24px]">
+        <div className="flex justify-between items-center">
           <h2 className="text-[16px] font-[700] text-[#18181B]">상단 배너</h2>
           <Link href="/banner/create">
             <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal">
@@ -297,8 +297,8 @@ export default function BannerPage() {
         {renderTable(topBanners, handleDragEndTop, true, topPage, setTopPage)}
       </section>
 
-      <section>
-        <div className="flex justify-between items-center mb-2">
+      <section className="flex flex-col gap-[24px]">
+        <div className="flex justify-between items-center">
           <h2 className="text-[16px] font-[700] text-[#18181B]">하단 배너</h2>
           <Link href="/banner/create">
             <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal">

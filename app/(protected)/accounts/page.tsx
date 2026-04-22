@@ -100,8 +100,8 @@ export default function AccountsPage() {
           <Input type="text" className="pl-9 h-10 border-gray-200 bg-white" placeholder="이메일, 이름 검색..." />
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
-          <div className="overflow-x-auto border-b border-gray-200">
+        <div className="bg-white rounded-lg border border-gray-200 flex flex-col">
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <AdminTableHeaderRow>
@@ -114,7 +114,7 @@ export default function AccountsPage() {
               </thead>
               <tbody>
                 {accounts.map((account) => (
-                  <tr key={account.id} className="border-b bg-white hover:bg-gray-50">
+                  <tr key={account.id} className="border-b last:border-0 bg-white hover:bg-gray-50">
                     <td className="p-4 text-sm font-medium text-gray-900">
                       {account.email}
                     </td>

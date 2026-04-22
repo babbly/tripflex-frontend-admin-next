@@ -34,7 +34,7 @@ export default function ImageAnalysisDetailPage() {
       </div>
 
       {/* Info Card */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 flex justify-between items-center shadow-sm">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 flex justify-between items-center">
         <div className="flex items-center space-x-8">
           <div>
             <div className="text-[12px] text-gray-500 mb-1">디바이스 ID</div>
