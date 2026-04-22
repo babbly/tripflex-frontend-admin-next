@@ -25,11 +25,11 @@ interface Permission {
 const CustomImageAnalysisIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" fill="none" className={className}>
     <g clipPath="url(#clip0_774_94064)">
-      <path d="M11.9166 6.4987H10.5733C10.3366 6.49819 10.1062 6.57524 9.91742 6.71805C9.72863 6.86087 9.59181 7.0616 9.5279 7.28953L8.25498 11.8179C8.24677 11.846 8.22967 11.8707 8.20623 11.8883C8.18279 11.9059 8.15428 11.9154 8.12498 11.9154C8.09568 11.9154 8.06717 11.9059 8.04373 11.8883C8.02029 11.8707 8.00318 11.846 7.99498 11.8179L5.00498 1.17953C4.99678 1.1514 4.97967 1.12669 4.95623 1.10911C4.93279 1.09153 4.90428 1.08203 4.87498 1.08203C4.84568 1.08203 4.81717 1.09153 4.79373 1.10911C4.77029 1.12669 4.75318 1.1514 4.74498 1.17953L3.47206 5.70786C3.4084 5.93491 3.27239 6.13498 3.0847 6.2777C2.897 6.42043 2.66786 6.49802 2.43206 6.4987H1.08331" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M11.9166 6.4987H10.5733C10.3366 6.49819 10.1062 6.57524 9.91742 6.71805C9.72863 6.86087 9.59181 7.0616 9.5279 7.28953L8.25498 11.8179C8.24677 11.846 8.22967 11.8707 8.20623 11.8883C8.18279 11.9059 8.15428 11.9154 8.12498 11.9154C8.09568 11.9154 8.06717 11.9059 8.04373 11.8883C8.02029 11.8707 8.00318 11.846 7.99498 11.8179L5.00498 1.17953C4.99678 1.1514 4.97967 1.12669 4.95623 1.10911C4.93279 1.09153 4.90428 1.08203 4.87498 1.08203C4.84568 1.08203 4.81717 1.09153 4.79373 1.10911C4.77029 1.12669 4.75318 1.1514 4.74498 1.17953L3.47206 5.70786C3.4084 5.93491 3.27239 6.13498 3.0847 6.2777C2.897 6.42043 2.66786 6.49802 2.43206 6.4987H1.08331" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </g>
     <defs>
       <clipPath id="clip0_774_94064">
-        <rect width="13" height="13" fill="white"/>
+        <rect width="13" height="13" fill="white" />
       </clipPath>
     </defs>
   </svg>
@@ -45,7 +45,6 @@ const mockPermissions: Permission[] = [
   { page: '홈 배너 관리', read: true, write: true, delete: false },
   { page: '이미지 분석 목록', read: true, write: false, delete: false },
   { page: '유저 제안 관리', read: true, write: true, delete: false },
-  { page: '국가별 팁 설정', read: true, write: false, delete: false },
   { page: 'FAQ 관리', read: true, write: true, delete: true },
 ];
 
@@ -149,8 +148,8 @@ export default function PermissionsPage() {
 
           <div className="space-y-2">
             <Label className="text-[14px] font-[600] text-[#18181B]">권한명</Label>
-            <Input 
-              value={selectedRole.name} 
+            <Input
+              value={selectedRole.name}
               onChange={(e) => setSelectedRole({ ...selectedRole, name: e.target.value })}
               className="h-11"
             />
@@ -175,27 +174,26 @@ export default function PermissionsPage() {
                         {p.page === '홈 배너 관리' && <ImageIcon className="w-4 h-4 text-gray-500" />}
                         {p.page === '이미지 분석 목록' && <CustomImageAnalysisIcon className="w-4 h-4 text-gray-500" />}
                         {p.page === '유저 제안 관리' && <MessageSquare className="w-4 h-4 text-gray-500" />}
-                        {p.page === '국가별 팁 설정' && <Globe className="w-4 h-4 text-gray-500" />}
                         {p.page === 'FAQ 관리' && <BookOpen className="w-4 h-4 text-gray-500" />}
                         <span>{p.page}</span>
                       </td>
                       <td className="p-3 text-center">
-                        <Checkbox 
-                          checked={p.read} 
+                        <Checkbox
+                          checked={p.read}
                           onCheckedChange={(checked) => handlePermissionChange(p.page, 'read', checked as boolean)}
                           className={p.read ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
                         />
                       </td>
                       <td className="p-3 text-center">
-                        <Checkbox 
-                          checked={p.write} 
+                        <Checkbox
+                          checked={p.write}
                           onCheckedChange={(checked) => handlePermissionChange(p.page, 'write', checked as boolean)}
                           className={p.write ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
                         />
                       </td>
                       <td className="p-3 text-center">
-                        <Checkbox 
-                          checked={p.delete} 
+                        <Checkbox
+                          checked={p.delete}
                           onCheckedChange={(checked) => handlePermissionChange(p.page, 'delete', checked as boolean)}
                           className={p.delete ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
                         />

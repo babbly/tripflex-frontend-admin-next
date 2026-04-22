@@ -14,13 +14,24 @@
     @apply outline-ring rounded-xs shadow-none outline-2 outline-offset-3 transition-none!;
   }
 
-  /* Remove default background image added by Tailwind forms or hide webkit indicator to avoid double calendar icons */
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    /* Keep native indicator, but position it cleanly or let it be */
-  }
-  
+  /* Keep default background image added by Tailwind forms for front icon */
   input[type="date"] {
-    background-image: none !important;
+    position: relative;
+  }
+
+  /* Hide the right-side calendar icon completely without interfering with the rest of the input */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+  }
+
+  /* Override Chrome/Webkit autofill background color */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #111827 !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }
 

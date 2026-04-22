@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
+import { Input } from '@/components/ui/input';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -26,7 +27,7 @@ export default function LoginPage() {
       {/* 좌측 패널 - 네이비 배경 + 로고 */}
       <div style={styles.leftPanel}>
         <div style={styles.logoWrapper}>
-          <span style={styles.logoText}>tripflex</span>
+          <img src="/logo.png" alt="tripflex" style={{ height: '40px', width: 'auto' }} />
         </div>
       </div>
 
@@ -46,17 +47,18 @@ export default function LoginPage() {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={1.5}
+                  className="z-10"
                 >
                   <rect x="2" y="4" width="20" height="16" rx="2" />
                   <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                 </svg>
-                <input
+                <Input
                   id="email"
                   type="text"
                   placeholder="admin@tripflex.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={styles.input}
+                  className="pl-10 h-11 border-gray-200 bg-white text-gray-900"
                   required
                 />
               </div>
@@ -66,13 +68,13 @@ export default function LoginPage() {
             <div style={styles.fieldGroup}>
               <label style={styles.label}>비밀번호</label>
               <div style={styles.inputWrapper}>
-                <input
+                <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ ...styles.input, paddingLeft: '16px', paddingRight: '44px' }}
+                  className="pl-4 pr-11 h-11 border-gray-200 bg-white text-gray-900"
                   required
                 />
                 <button
@@ -80,6 +82,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   style={styles.eyeButton}
                   aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+                  className="z-10"
                 >
                   {showPassword ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} style={styles.eyeIcon}>
@@ -226,7 +229,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   loginButton: {
     width: '100%',
-    padding: '12px',
+    height: '44px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#4a8af4',
     color: '#ffffff',
     border: 'none',

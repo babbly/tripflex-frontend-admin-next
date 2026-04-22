@@ -119,9 +119,27 @@ function Input({
   className,
   type,
   variant,
+  onClick,
   ...props
 }: React.ComponentProps<'input'> & VariantProps<typeof inputVariants>) {
-  return <input data-slot="input" type={type} className={cn(inputVariants({ variant }), className)} {...props} />;
+  return (
+    <input 
+      data-slot="input" 
+      type={type} 
+      className={cn(inputVariants({ variant }), className)} 
+      onClick={(e) => {
+        if (type === 'date') {
+          try {
+            e.currentTarget.showPicker();
+          } catch (err) {
+            // Ignore error if showPicker is not supported
+          }
+        }
+        onClick?.(e);
+      }}
+      {...props} 
+    />
+  );
 }
 
 function InputAddon({
