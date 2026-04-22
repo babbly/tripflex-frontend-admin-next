@@ -86,7 +86,7 @@ export default function AccountsPage() {
       <div className="flex-1 flex flex-col space-y-6">
         <div className="flex justify-between items-center">
           <PageTitle>계정 관리</PageTitle>
-          <Button onClick={handleAddClick} className="bg-[#4186FF] hover:bg-blue-600 text-white h-10 px-4">
+          <Button onClick={handleAddClick} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
             <Plus className="w-4 h-4 mr-2" />
             계정 추가
           </Button>
@@ -172,7 +172,7 @@ export default function AccountsPage() {
                 key={p}
                 variant={p === page ? 'default' : 'outline'}
                 size="icon"
-                className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600 border-transparent' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
                 onClick={() => setPage(p)}
               >
                 {p}
@@ -247,7 +247,7 @@ export default function AccountsPage() {
           </div>
 
           <div className="flex flex-col space-y-2 mt-8">
-            <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white h-10">
+            <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10">
               저장
             </Button>
             <Button 

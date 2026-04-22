@@ -165,7 +165,7 @@ export default function ActivityLogPage() {
               key={p}
               variant={p === page ? 'default' : 'outline'}
               size="icon"
-              className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+              className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600 border-transparent' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
               onClick={() => setPage(p)}
             >
               {p}

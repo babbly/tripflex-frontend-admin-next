@@ -250,7 +250,7 @@ export default function BannerPage() {
               key={p}
               variant={p === page ? 'default' : 'outline'}
               size="icon"
-              className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white hover:bg-blue-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+              className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
               onClick={() => setPage(p)}
             >
               {p}
@@ -288,7 +288,7 @@ export default function BannerPage() {
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-[16px] font-[700] text-[#18181B]">상단 배너</h2>
           <Link href="/banner/create">
-            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white">
+            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal">
               <Plus className="w-4 h-4 mr-2" />
               배너 추가
             </Button>
@@ -301,7 +301,7 @@ export default function BannerPage() {
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-[16px] font-[700] text-[#18181B]">하단 배너</h2>
           <Link href="/banner/create">
-            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white">
+            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal">
               <Plus className="w-4 h-4 mr-2" />
               배너 추가
             </Button>

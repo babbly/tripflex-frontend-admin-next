@@ -54,7 +54,7 @@ export default function PermissionsPage() {
       <div className="flex-1 space-y-4">
         <div className="flex justify-between items-center">
           <PageTitle>권한 관리</PageTitle>
-          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white">
+          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal">
             <Plus className="w-4 h-4 mr-2" />
             권한 추가
           </Button>
@@ -95,7 +95,7 @@ export default function PermissionsPage() {
             <Button
               variant="default"
               size="icon"
-              className="w-8 h-8 p-0 bg-[#4186FF] text-white hover:bg-blue-600"
+              className="w-8 h-8 p-0 bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600"
             >
               1
             </Button>
@@ -180,7 +180,7 @@ export default function PermissionsPage() {
           </div>
 
           <div className="pt-4 flex flex-col space-y-2">
-            <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white h-11">
+            <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-11">
               저장
             </Button>
             <Button variant="outline" className="w-full h-11 border-gray-200 text-gray-700 hover:bg-gray-50">

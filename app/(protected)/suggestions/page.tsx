@@ -114,7 +114,7 @@ export default function SuggestionsPage() {
         </div>
 
         {/* Download Button */}
-        <Button className="bg-[#4186FF] hover:bg-blue-600 text-white h-10 px-4">
+        <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
           <Download className="w-4 h-4 mr-2" />
           전체 JSON 다운로드
         </Button>
@@ -189,7 +189,7 @@ export default function SuggestionsPage() {
               key={p}
               variant={p === page ? 'default' : 'outline'}
               size="icon"
-              className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+              className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600 border-transparent' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
               onClick={() => setPage(p)}
             >
               {p}

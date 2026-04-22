@@ -63,7 +63,7 @@ export default function SuggestionDetailPage() {
               <span className="text-sm text-gray-500 font-medium">확인 여부</span>
               <Switch checked={detailData.isConfirmed} onCheckedChange={toggleStatus} />
             </div>
-            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white h-10 px-4">
+            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
               <Download className="w-4 h-4 mr-2" />
               JSON 다운로드
             </Button>

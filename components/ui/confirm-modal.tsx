@@ -72,10 +72,10 @@ export function ConfirmModal({
           )}
           <AlertDialogAction asChild>
             <Button
-              className={`flex-1 h-12 rounded-xl text-base font-semibold text-white ${
+              className={`flex-1 h-12 rounded-xl text-white ${
                 actualConfirmColor === 'red' 
-                  ? 'bg-[#EF4444] hover:bg-red-600' 
-                  : 'bg-[#4186FF] hover:bg-blue-600'
+                  ? 'bg-[#EF4444] hover:bg-red-600 text-base font-semibold' 
+                  : 'bg-[#4186FF] hover:bg-blue-600 text-[14px] font-[600] leading-normal'
               }`}
               onClick={handleConfirm}
             >

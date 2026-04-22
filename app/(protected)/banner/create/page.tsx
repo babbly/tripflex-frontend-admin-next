@@ -26,7 +26,7 @@ export default function BannerCreatePage() {
           <Button variant="outline" onClick={() => router.back()} className="px-6 border-gray-300 text-gray-700">
             취소
           </Button>
-          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white px-6">
+          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal px-6">
             <Check className="w-4 h-4 mr-2" />
             저장
           </Button>
