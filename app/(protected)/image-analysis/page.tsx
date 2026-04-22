@@ -52,8 +52,10 @@ export default function ImageAnalysisPage() {
         <PageTitle>이미지 분석 목록</PageTitle>
       </div>
 
-      <div className="flex justify-between items-center w-full">
-        <div className="flex items-center space-x-3">
+      {/* Filters & Actions */}
+      <div className="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center gap-4">
+        {/* Search */}
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto flex-1">
           {/* Device ID Search */}
           <div className="relative w-[240px]">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">

@@ -13,6 +13,15 @@
   *:focus-visible {
     @apply outline-ring rounded-xs shadow-none outline-2 outline-offset-3 transition-none!;
   }
+
+  /* Remove default background image added by Tailwind forms or hide webkit indicator to avoid double calendar icons */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    /* Keep native indicator, but position it cleanly or let it be */
+  }
+  
+  input[type="date"] {
+    background-image: none !important;
+  }
 }
 
 /* Metronic Components  */

@@ -7,7 +7,7 @@ interface AdminTableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElemen
 
 export function AdminTableHeaderRow({ children, className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
   return (
-    <tr className={cn("bg-gray-50 border-b text-[#71717A] text-[12px] font-[600] whitespace-nowrap", className)} {...props}>
+    <tr className={cn("bg-gray-50 border-b text-[#71717A] text-[12px] font-[600]", className)} {...props}>
       {children}
     </tr>
   );

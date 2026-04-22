@@ -33,7 +33,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[280px] min-h-screen bg-[#242938] text-[#8C90A4] flex flex-col">
+    <aside className="w-[240px] min-h-screen shrink-0 bg-[#242938] text-[#8C90A4] flex flex-col">
       <div className="p-6">
         <h1 className="text-2xl font-bold text-[#14F1CE]">tripflex</h1>
       </div>

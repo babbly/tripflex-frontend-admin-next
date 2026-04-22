@@ -146,7 +146,7 @@ export default function SuggestionsPage() {
                   <td className="p-4">
                     <Badge 
                       variant="secondary" 
-                      className="bg-[#eef1ff] text-[#1c2340] hover:bg-[#eef1ff] font-normal"
+                      className="bg-[#eef1ff] text-[#1C2340] text-[11px] font-[600] leading-normal hover:bg-[#eef1ff]"
                     >
                       {record.category}
                     </Badge>
@@ -162,7 +162,7 @@ export default function SuggestionsPage() {
                   </td>
                   <td className="p-4 text-center">
                     <Link href={`/suggestions/${record.id}`}>
-                      <Button variant="ghost" className="bg-[#EFF6FF] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] h-8 px-4 text-xs font-medium">
+                      <Button variant="ghost" className="flex items-start py-[6px] px-[12px] bg-[#EEF1FF] rounded-[5px] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] text-[13px] font-[600] leading-normal not-italic h-auto">
                         보기
                       </Button>
                     </Link>
