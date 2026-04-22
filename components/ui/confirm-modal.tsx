@@ -57,7 +57,7 @@ export function ConfirmModal({
             </AlertDialogDescription>
           )}
         </AlertDialogHeader>
-        
+
         <AlertDialogFooter className="flex w-full gap-3 sm:space-x-0 sm:justify-center flex-row">
           {variant === 'double' && (
             <AlertDialogCancel asChild>
@@ -72,11 +72,10 @@ export function ConfirmModal({
           )}
           <AlertDialogAction asChild>
             <Button
-              className={`flex-1 h-12 rounded-xl text-white ${
-                actualConfirmColor === 'red' 
-                  ? 'bg-[#EF4444] hover:bg-red-600 text-base font-semibold' 
-                  : 'bg-[#4186FF] hover:bg-blue-600 text-[14px] font-[600] leading-normal'
-              }`}
+              className={`flex-1 h-12 rounded-xl text-white ${actualConfirmColor === 'red'
+                ? 'bg-[#EF4444] hover:bg-red-600 text-base font-semibold'
+                : 'bg-[#4186FF] hover:bg-blue-600 text-[14px] font-[600] leading-normal'
+                }`}
               onClick={handleConfirm}
             >
               {confirmText}

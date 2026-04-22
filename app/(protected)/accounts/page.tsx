@@ -86,7 +86,7 @@ export default function AccountsPage() {
       <div className="flex-1 flex flex-col space-y-6">
         <div className="flex justify-between items-center">
           <PageTitle>계정 관리</PageTitle>
-          <Button onClick={handleAddClick} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
+          <Button onClick={handleAddClick} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold leading-normal h-9 px-4">
             <Plus className="w-4 h-4 mr-2" />
             계정 추가
           </Button>
@@ -124,7 +124,7 @@ export default function AccountsPage() {
                     <td className="p-4">
                       <Badge 
                         variant="secondary" 
-                        className="bg-[#EEF1FF] text-[#1C2340] hover:bg-[#EEF1FF] font-normal"
+                        className="bg-[#eef1ff] text-[#1C2340] text-[11px] font-[600] leading-normal hover:bg-[#eef1ff]"
                       >
                         {account.role}
                       </Badge>
@@ -133,7 +133,7 @@ export default function AccountsPage() {
                       <div className="flex justify-center">
                         <Badge 
                           variant="secondary" 
-                          className={`font-normal flex items-center gap-1.5 ${
+                          className={`font-semibold flex items-center gap-1.5 ${
                             account.isActive 
                               ? 'bg-[#D1FAE5] text-[#10B981] hover:bg-[#D1FAE5]' 
                               : 'bg-[#FEE2E2] text-[#EF4444] hover:bg-[#FEE2E2]'
@@ -193,66 +193,66 @@ export default function AccountsPage() {
 
       {/* Right Area - Edit Panel */}
       {isEditing && (
-        <div className="w-[320px] bg-white rounded-lg border border-gray-200 shadow-sm p-6 flex flex-col shrink-0 self-start">
-          <h3 className="font-bold text-lg text-gray-900 mb-6">
+        <div className="w-[320px] bg-white rounded-lg border border-gray-200 shadow-sm p-[20px] flex flex-col shrink-0 self-start gap-[16px]">
+          <h3 className="font-bold text-lg text-gray-900">
             {selectedAccount ? '계정 편집' : '계정 추가'}
           </h3>
           
-          <div className="space-y-6 flex-1">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-900">이메일</label>
-              <Input 
-                type="email" 
-                placeholder="이메일을 입력해주세요" 
-                defaultValue={selectedAccount?.email || ''}
-                className="border-blue-400 focus-visible:ring-[#4186FF] focus-visible:border-[#4186FF]"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-900">이름</label>
-              <Input 
-                type="text" 
-                placeholder="이름을 입력해주세요" 
-                defaultValue={selectedAccount?.name || ''}
-                className="border-gray-200"
-              />
-            </div>
+          <div className="h-[1px] bg-[#E4E4E7] self-stretch" />
 
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-900">권한 선택</label>
-              <div className="relative">
-                <select 
-                  className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-[#4186FF] focus:border-[#4186FF] text-gray-600"
-                  defaultValue={selectedAccount?.role || ''}
-                >
-                  <option value="" disabled>선택</option>
-                  <option value="슈퍼 관리자">슈퍼 관리자</option>
-                  <option value="관리자">관리자</option>
-                  <option value="뷰어">뷰어</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-col gap-[16px]">
+            <label className="text-sm font-semibold text-gray-900">이메일</label>
+            <Input 
+              type="email" 
+              placeholder="이메일을 입력해주세요" 
+              defaultValue={selectedAccount?.email || ''}
+              className="border-blue-400 focus-visible:ring-[#4186FF] focus-visible:border-[#4186FF]"
+            />
+          </div>
+          
+          <div className="flex flex-col gap-[16px]">
+            <label className="text-sm font-semibold text-gray-900">이름</label>
+            <Input 
+              type="text" 
+              placeholder="이름을 입력해주세요" 
+              defaultValue={selectedAccount?.name || ''}
+              className="border-gray-200"
+            />
+          </div>
 
-            <div className="space-y-3 pt-2">
-              <label className="text-sm font-semibold text-gray-900">활성화</label>
-              <div className="flex items-center space-x-3">
-                <Switch defaultChecked={selectedAccount?.isActive ?? true} />
-                <span className="text-sm text-gray-500">계정이 활성화됩니다.</span>
+          <div className="flex flex-col gap-[16px]">
+            <label className="text-sm font-semibold text-gray-900">권한 선택</label>
+            <div className="relative">
+              <select 
+                className="w-full h-10 pl-3 pr-8 text-sm border border-gray-200 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-[#4186FF] focus:border-[#4186FF] text-gray-600"
+                defaultValue={selectedAccount?.role || ''}
+              >
+                <option value="" disabled>선택</option>
+                <option value="슈퍼 관리자">슈퍼 관리자</option>
+                <option value="관리자">관리자</option>
+                <option value="뷰어">뷰어</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <ChevronDown className="w-4 h-4 text-gray-400" />
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col space-y-2 mt-8">
+          <div className="flex flex-col gap-[8px]">
+            <label className="text-sm font-semibold text-gray-900">활성화</label>
+            <div className="flex items-center space-x-3">
+              <Switch defaultChecked={selectedAccount?.isActive ?? true} />
+              <span className="text-sm text-gray-500">계정이 활성화됩니다.</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-[16px]">
             <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10">
               저장
             </Button>
             <Button 
               variant="outline" 
-              className="w-full border-gray-200 text-gray-700 hover:bg-gray-50 h-10"
+              className="w-full border-gray-200 text-gray-700 hover:bg-gray-50 h-10 font-semibold"
               onClick={() => setIsEditing(false)}
             >
               취소
