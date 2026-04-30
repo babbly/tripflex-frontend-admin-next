@@ -5,6 +5,8 @@ import { PageTitle } from '@/components/ui/page-title';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, Expand, ImageIcon } from 'lucide-react';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 const ScanIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" className={className}>
@@ -85,13 +87,13 @@ export default function ImageAnalysisDetailPage() {
           </Button>
         </div>
 
-        {/* Info Grid */}
         <div className="space-y-8">
-          <div className="flex space-x-12">
+          <div className="flex items-center space-x-8">
             <div className="min-w-[120px]">
               <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">디바이스 ID</div>
               <div className="text-[15px] font-bold text-gray-900">{detailData.deviceId}</div>
             </div>
+            <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[80px]">
               <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">국가</div>
               <div className="flex items-center space-x-1.5">
@@ -99,29 +101,34 @@ export default function ImageAnalysisDetailPage() {
                 <span className="text-[15px] font-bold text-gray-900">{detailData.country}</span>
               </div>
             </div>
+            <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div>
               <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">분석 일시</div>
               <div className="text-[15px] font-bold text-gray-900">{detailData.analyzedAt}</div>
             </div>
           </div>
 
-          <div className="flex space-x-12 border-t border-gray-50 pt-6">
+          <div className="flex items-center space-x-8 border-t border-gray-50 pt-6">
             <div className="min-w-[60px]">
               <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">이미지 처리시간</div>
               <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.imageProcessing}</div>
             </div>
+            <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[60px]">
               <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">OCR</div>
               <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.ocr}</div>
             </div>
+            <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[60px]">
               <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">AI</div>
               <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.ai}</div>
             </div>
+            <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[60px]">
               <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">번역</div>
               <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.translation}</div>
             </div>
+            <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[60px]">
               <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">총 합</div>
               <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.total}</div>
@@ -136,15 +143,14 @@ export default function ImageAnalysisDetailPage() {
           <ScanIcon className="w-5 h-5 text-[#4186FF]" />
           <h2 className="text-[16px] font-[700] text-gray-900">분석 이미지</h2>
         </div>
-        <div className="flex flex-wrap gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
           {detailData.analyzedImages.map((item, index) => (
-            <div key={`analyzed-${index}`} className="flex flex-col space-y-3" style={{ width: '206px' }}>
-              <div 
-                className="bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF]"
-                style={{ width: '206px', height: '145px' }}
-              >
-                <ScanPlaceholderIcon className="w-10 h-10 text-[#4186FF] opacity-60" />
-              </div>
+            <div key={`analyzed-${index}`} className="flex flex-col space-y-3">
+              <AspectRatio ratio={206 / 145}>
+                <div className="bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF] w-full h-full">
+                  <ScanPlaceholderIcon className="w-10 h-10 text-[#4186FF] opacity-60" />
+                </div>
+              </AspectRatio>
               <div className="flex flex-col space-y-2">
                 <Button variant="outline" className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2">
                   <Download className="w-3 h-3 mr-1" />
@@ -166,15 +172,14 @@ export default function ImageAnalysisDetailPage() {
           <ImageIcon className="w-5 h-5 text-gray-600" />
           <h2 className="text-[16px] font-[700] text-gray-900">원본 이미지</h2>
         </div>
-        <div className="flex flex-wrap gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
           {detailData.originalImages.map((item, index) => (
-            <div key={`original-${index}`} className="flex flex-col space-y-3" style={{ width: '206px' }}>
-              <div 
-                className="bg-gray-100 rounded-lg flex items-center justify-center border border-gray-100"
-                style={{ width: '206px', height: '145px' }}
-              >
-                <ImageIcon className="w-8 h-8 text-gray-300" />
-              </div>
+            <div key={`original-${index}`} className="flex flex-col space-y-3">
+              <AspectRatio ratio={206 / 145}>
+                <div className="bg-gray-100 rounded-lg flex items-center justify-center border border-gray-100 w-full h-full">
+                  <ImageIcon className="w-8 h-8 text-gray-300" />
+                </div>
+              </AspectRatio>
               <Button variant="outline" className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2">
                 <Download className="w-3 h-3 mr-1" />
                 이미지

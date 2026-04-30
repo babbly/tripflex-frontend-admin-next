@@ -137,7 +137,6 @@ export default function PermissionsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center space-x-2">
                         <EditButton onClick={() => handleEditClick(role)} />
-                        <DeleteButton onClick={() => handleDeleteClick(role.id)} />
                       </div>
                     </td>
                   </tr>
@@ -177,11 +176,14 @@ export default function PermissionsPage() {
       {/* Right Column: Role Edit Form */}
       {isEditing && (
         <div className="w-[360px] flex-shrink-0">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
-            <div>
-              <h2 className="text-[16px] font-[700] text-[#18181B] mb-4 pb-4 border-b border-gray-200">
+          <div key={selectedRole?.id || 'new'} className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
+            <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
+              <h2 className="text-[16px] font-[700] text-[#18181B]">
                 {selectedRole ? '권한 편집' : '권한 추가'}
               </h2>
+              {selectedRole && (
+                <DeleteButton onClick={() => handleDeleteClick(selectedRole.id)} />
+              )}
             </div>
 
             <div className="space-y-2">
