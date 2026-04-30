@@ -18,6 +18,7 @@ interface Account {
   name: string;
   role: '슈퍼 관리자' | '관리자' | '뷰어';
   isActive: boolean;
+  createdAt: string;
 }
 
 export default function AccountsPage() {
@@ -32,6 +33,7 @@ export default function AccountsPage() {
       name: '유명호',
       role: '슈퍼 관리자',
       isActive: true,
+      createdAt: '2026-04-01',
     },
     {
       id: '2',
@@ -39,6 +41,7 @@ export default function AccountsPage() {
       name: '조은채',
       role: '관리자',
       isActive: true,
+      createdAt: '2026-04-15',
     },
     {
       id: '3',
@@ -46,15 +49,27 @@ export default function AccountsPage() {
       name: '허지은',
       role: '뷰어',
       isActive: false,
+      createdAt: '2026-04-30',
     },
   ]);
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
 
-  const totalPages = Math.max(1, Math.ceil(accounts.length / ITEMS_PER_PAGE));
+  const filteredAccounts = accounts.filter((account) => {
+    // 텍스트 검색
+    const matchesQuery = account.accountId.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         account.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    
+    return matchesQuery;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredAccounts.length / ITEMS_PER_PAGE));
 
   const handleEditClick = (account: Account) => {
     setSelectedAccount(account);
@@ -92,11 +107,27 @@ export default function AccountsPage() {
 
         {/* Search & Actions */}
         <div className="flex justify-between items-center">
-          <div className="relative w-[280px]">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="w-4 h-4 text-gray-400" />
+          <div className="flex items-center gap-3">
+            <div className="relative w-[280px]">
+              <Input 
+                type="text" 
+                className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" 
+                placeholder="아이디, 이름 검색..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="w-4 h-4 text-gray-400" />
+              </div>
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" placeholder="아이디, 이름 검색..." />
+
+
+            <Button 
+              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-6"
+              onClick={() => setPage(1)}
+            >
+              검색
+            </Button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -133,7 +164,7 @@ export default function AccountsPage() {
                 </AdminTableHeaderRow>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {accounts.map((account) => (
+                {filteredAccounts.map((account) => (
                   <tr key={account.id} className="bg-white hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {account.accountId}
@@ -167,7 +198,6 @@ export default function AccountsPage() {
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center space-x-2">
                         <EditButton onClick={() => handleEditClick(account)} />
-                        <DeleteButton onClick={() => handleDeleteClick(account.id)} />
                       </div>
                     </td>
                   </tr>
@@ -213,10 +243,18 @@ export default function AccountsPage() {
 
       {/* Right Area - Edit Panel */}
       {isEditing && (
-        <div className="w-[320px] bg-white rounded-lg border border-gray-200 shadow-sm p-[20px] flex flex-col shrink-0 self-start gap-[16px]">
-          <h3 className="font-bold text-lg text-gray-900">
-            {selectedAccount ? '계정 편집' : '계정 추가'}
-          </h3>
+        <div 
+          key={selectedAccount?.id || 'new'}
+          className="w-[320px] bg-white rounded-lg border border-gray-200 shadow-sm p-[20px] flex flex-col shrink-0 self-start gap-[16px]"
+        >
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-lg text-gray-900">
+              {selectedAccount ? '계정 편집' : '계정 추가'}
+            </h3>
+            {selectedAccount && (
+              <DeleteButton onClick={() => handleDeleteClick(selectedAccount.id)} />
+            )}
+          </div>
           
           <div className="h-[1px] bg-[#E4E4E7] self-stretch" />
 

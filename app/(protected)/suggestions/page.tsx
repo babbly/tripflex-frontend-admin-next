@@ -51,7 +51,25 @@ export default function SuggestionsPage() {
     },
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(records.length / ITEMS_PER_PAGE));
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredRecords = records.filter((record) => {
+    // 텍스트 검색
+    const matchesQuery = record.content.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         record.deviceId.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // 날짜 검색
+    if (startDate && endDate) {
+      const recordDate = record.createdAt.split(' ')[0]; // YYYY-MM-DD
+      return matchesQuery && recordDate >= startDate && recordDate <= endDate;
+    }
+    
+    return matchesQuery;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE));
 
   const toggleStatus = (id: string) => {
     setRecords((prev) => prev.map((r) => (r.id === id ? { ...r, isConfirmed: !r.isConfirmed } : r)));
@@ -71,7 +89,13 @@ export default function SuggestionsPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="제안 내용 검색..." />
+            <Input 
+              type="text" 
+              className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" 
+              placeholder="제안 내용 검색..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
 
           {/* Tag Select */}
@@ -90,17 +114,35 @@ export default function SuggestionsPage() {
           {/* Date Range */}
           <div className="flex items-center gap-2">
             <div className="relative w-[150px]">
+              <Input 
+                type="text" 
+                className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" 
+                placeholder="시작 날짜" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) {} }} 
+                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }} 
+                max={endDate || undefined}
+              />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Calendar className="w-4 h-4 text-gray-400" />
               </div>
-              <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="시작 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
             </div>
             <span className="text-gray-400">~</span>
             <div className="relative w-[150px]">
+              <Input 
+                type="text" 
+                className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" 
+                placeholder="종료 날짜" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) {} }} 
+                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }} 
+                min={startDate || undefined}
+              />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Calendar className="w-4 h-4 text-gray-400" />
               </div>
-              <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="종료 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
             </div>
           </div>
         </div>
@@ -140,7 +182,7 @@ export default function SuggestionsPage() {
               </AdminTableHeaderRow>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {records.map((record) => (
+              {filteredRecords.map((record) => (
                 <tr key={record.id} className="bg-white hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="w-[42px] h-[42px] bg-gray-100 rounded-md"></div>

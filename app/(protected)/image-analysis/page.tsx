@@ -67,7 +67,24 @@ export default function ImageAnalysisPage() {
     },
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(records.length / ITEMS_PER_PAGE));
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [deviceId, setDeviceId] = useState('');
+
+  const filteredRecords = records.filter((record) => {
+    // 디바이스 ID 검색
+    const matchesDeviceId = record.deviceId.toLowerCase().includes(deviceId.toLowerCase());
+
+    // 날짜 검색
+    if (startDate && endDate) {
+      const recordDate = record.analysisDate.split(' ')[0]; // YYYY-MM-DD
+      return matchesDeviceId && recordDate >= startDate && recordDate <= endDate;
+    }
+
+    return matchesDeviceId;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE));
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -83,7 +100,13 @@ export default function ImageAnalysisPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="디바이스 ID..." />
+            <Input
+              type="text"
+              className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]"
+              placeholder="디바이스 ID 검색"
+              value={deviceId}
+              onChange={(e) => setDeviceId(e.target.value)}
+            />
           </div>
 
           <Select>
@@ -99,17 +122,35 @@ export default function ImageAnalysisPage() {
 
           <div className="flex items-center gap-2">
             <div className="relative w-[140px]">
+              <Input
+                type="text"
+                className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]"
+                placeholder="시작 날짜"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) { } }}
+                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+                max={endDate || undefined}
+              />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Calendar className="w-4 h-4 text-gray-400" />
               </div>
-              <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="시작 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
             </div>
             <span className="text-gray-400">~</span>
             <div className="relative w-[140px]">
+              <Input
+                type="text"
+                className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]"
+                placeholder="종료 날짜"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) { } }}
+                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+                min={startDate || undefined}
+              />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Calendar className="w-4 h-4 text-gray-400" />
               </div>
-              <Input type="text" className="pl-9 h-10 border-gray-200 text-[#71717A] placeholder:text-[#71717A]" placeholder="종료 날짜" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => (e.target.type = 'text')} />
             </div>
           </div>
         </div>
@@ -187,7 +228,7 @@ export default function ImageAnalysisPage() {
               </AdminTableHeaderRow>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {records.map((record) => (
+              {filteredRecords.map((record) => (
                 <tr key={record.id} className="bg-white hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {record.deviceId}
@@ -233,7 +274,7 @@ export default function ImageAnalysisPage() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
           <Button

@@ -61,7 +61,26 @@ export default function ActivityLogPage() {
     },
   ];
 
-  const totalPages = Math.max(1, Math.ceil(logs.length / ITEMS_PER_PAGE));
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredLogs = logs.filter((log) => {
+    // 텍스트 검색
+    const matchesQuery = log.workerName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         log.workerId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         log.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // 날짜 검색
+    if (startDate && endDate) {
+      const logDate = log.time.split(' ')[0]; // YYYY-MM-DD
+      return matchesQuery && logDate >= startDate && logDate <= endDate;
+    }
+    
+    return matchesQuery;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ITEMS_PER_PAGE));
 
   return (
     <div className="w-full flex flex-col space-y-6 pb-12">
@@ -80,6 +99,8 @@ export default function ActivityLogPage() {
               type="text" 
               className="pl-9 h-11 border-gray-200 bg-white text-[#18181B] placeholder:text-[#A1A1AA] rounded-[8px]" 
               placeholder="작업자 및 대상자 검색" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
@@ -118,28 +139,34 @@ export default function ActivityLogPage() {
 
           <div className="flex items-center gap-2">
             <div className="relative w-[180px]">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Calendar className="w-4 h-4 text-gray-400" />
-              </div>
               <Input 
                 type="text" 
                 className="pl-9 h-11 border-gray-200 bg-white text-[#18181B] placeholder:text-[#A1A1AA] rounded-[8px]" 
                 placeholder="시작 날짜" 
-                onFocus={(e) => e.target.type = 'date'}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) {} }}
                 onBlur={(e) => !e.target.value && (e.target.type = 'text')}
+                max={endDate || undefined}
               />
-            </div>
-            <div className="relative w-[180px]">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Calendar className="w-4 h-4 text-gray-400" />
               </div>
+            </div>
+            <div className="relative w-[180px]">
               <Input 
                 type="text" 
                 className="pl-9 h-11 border-gray-200 bg-white text-[#18181B] placeholder:text-[#A1A1AA] rounded-[8px]" 
                 placeholder="종료 날짜" 
-                onFocus={(e) => e.target.type = 'date'}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) {} }}
                 onBlur={(e) => !e.target.value && (e.target.type = 'text')}
+                min={startDate || undefined}
               />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Calendar className="w-4 h-4 text-gray-400" />
+              </div>
             </div>
           </div>
         </div>
@@ -173,7 +200,7 @@ export default function ActivityLogPage() {
               </AdminTableHeaderRow>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {logs.map((log) => (
+              {filteredLogs.map((log) => (
                 <tr key={log.id} className="bg-white hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-5 text-[14px] font-[600] text-[#18181B] whitespace-nowrap">{log.time}</td>
                   <td className="px-6 py-5 text-[14px] text-[#18181B]">{log.menu}</td>
