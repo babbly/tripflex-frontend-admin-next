@@ -62,13 +62,18 @@ const dummyLanguages: Language[] = [
 ];
 
 const dummyCurrencies: Currency[] = [
-  { id: '1', name: '원', symbol: '₩', code: 'KRW', countries: ['6'] },
-  { id: '2', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
-  { id: '3', name: '엔', symbol: '¥', code: 'JPY', countries: ['11'] },
-  { id: '4', name: '유로', symbol: '€', code: 'EUR', countries: ['2', '7', '12'] },
-  { id: '5', name: '파운드', symbol: '£', code: 'GBP', countries: [] },
-  { id: '6', name: '위안', symbol: '¥', code: 'CNY', countries: [] },
-  { id: '7', name: '대만 달러', symbol: 'NT$', code: 'TWD', countries: ['5'] },
+  { id: '1', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '2', name: '엔', symbol: '¥', code: 'JPY', countries: ['11'] },
+  { id: '3', name: '원', symbol: '₩', code: 'KRW', countries: ['6'] },
+  { id: '4', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '5', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '6', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '7', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '8', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '9', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '10', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '11', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '12', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
 ];
 
 export default function CountryManagementPage() {
@@ -322,7 +327,9 @@ export default function CountryManagementPage() {
                   <tbody className="divide-y divide-gray-100">
                     {currentCurrencies.map((curr) => (
                       <tr key={curr.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="text-[14px] font-medium text-gray-900">{curr.name} ({curr.symbol})</span><span className="text-[12px] text-gray-400">{curr.code}</span></div></td>
+                        <td className="px-6 py-4">
+                          <span className="text-[14px] font-medium text-gray-900">{curr.name}</span>
+                        </td>
                         <td className="px-6 py-4"><div className="flex items-center justify-center gap-2"><EditButton onClick={() => handleEditCurrency(curr)} /><DeleteButton onClick={() => handleDeleteClick(curr.id, 'currency')} /></div></td>
                       </tr>
                     ))}
