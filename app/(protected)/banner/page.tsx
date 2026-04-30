@@ -126,6 +126,21 @@ export default function BannerPage() {
     bottom: generateDummyData('bottom', 12),
   });
 
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  const handleTabChange = (tabId: 'top' | 'middle' | 'bottom') => {
+    setActiveTab(tabId);
+    setPage(1);
+    setStartDate('');
+    setEndDate('');
+    // 새로고침 효과를 위해 데이터를 다시 생성합니다.
+    setBanners(prev => ({
+      ...prev,
+      [tabId]: generateDummyData(tabId, tabId === 'top' ? 25 : tabId === 'middle' ? 15 : 12)
+    }));
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -164,7 +179,13 @@ export default function BannerPage() {
     }
   };
 
-  const currentBanners = banners[activeTab];
+  const filteredBanners = banners[activeTab].filter((banner) => {
+    if (!startDate || !endDate) return true;
+    // 날짜 비교 로직 (YYYY-MM-DD 형식 문자열 비교)
+    return banner.startDate >= startDate && banner.endDate <= endDate;
+  });
+
+  const currentBanners = filteredBanners;
   const totalPages = Math.max(1, Math.ceil(currentBanners.length / ITEMS_PER_PAGE));
   const paginatedBanners = currentBanners.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
@@ -183,10 +204,7 @@ export default function BannerPage() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => {
-              setActiveTab(tab.id);
-              setPage(1);
-            }}
+            onClick={() => handleTabChange(tab.id)}
             className={`px-6 py-3 text-[14px] font-[600] transition-colors relative ${
               activeTab === tab.id ? 'text-[#4186FF]' : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -214,12 +232,30 @@ export default function BannerPage() {
           <div className="flex items-center gap-[8px]">
             <div className="flex items-center w-[160px] h-[40px] px-[12px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
               <Calendar className="w-4 h-4 text-[#71717A]" />
-              <input type="text" placeholder="시작 날짜" className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" />
+              <input 
+                type="text" 
+                placeholder="시작 날짜" 
+                className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) {} }} 
+                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }} 
+                max={endDate || undefined}
+              />
             </div>
             <span className="text-gray-400">~</span>
             <div className="flex items-center w-[160px] h-[40px] px-[12px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
               <Calendar className="w-4 h-4 text-[#71717A]" />
-              <input type="text" placeholder="종료 날짜" className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" />
+              <input 
+                type="text" 
+                placeholder="종료 날짜" 
+                className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) {} }} 
+                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }} 
+                min={startDate || undefined}
+              />
             </div>
           </div>
         </div>
