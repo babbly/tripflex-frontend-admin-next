@@ -32,6 +32,7 @@ interface Currency {
   name: string;
   symbol: string;
   code: string;
+  countries?: string[]; // Array of country IDs
 }
 
 const dummyCountries: Country[] = [
@@ -61,13 +62,13 @@ const dummyLanguages: Language[] = [
 ];
 
 const dummyCurrencies: Currency[] = [
-  { id: '1', name: '원', symbol: '₩', code: 'KRW' },
-  { id: '2', name: '달러', symbol: '$', code: 'USD' },
-  { id: '3', name: '엔', symbol: '¥', code: 'JPY' },
-  { id: '4', name: '유로', symbol: '€', code: 'EUR' },
-  { id: '5', name: '파운드', symbol: '£', code: 'GBP' },
-  { id: '6', name: '위안', symbol: '¥', code: 'CNY' },
-  { id: '7', name: '대만 달러', symbol: 'NT$', code: 'TWD' },
+  { id: '1', name: '원', symbol: '₩', code: 'KRW', countries: ['6'] },
+  { id: '2', name: '달러', symbol: '$', code: 'USD', countries: ['1'] },
+  { id: '3', name: '엔', symbol: '¥', code: 'JPY', countries: ['11'] },
+  { id: '4', name: '유로', symbol: '€', code: 'EUR', countries: ['2', '7', '12'] },
+  { id: '5', name: '파운드', symbol: '£', code: 'GBP', countries: [] },
+  { id: '6', name: '위안', symbol: '¥', code: 'CNY', countries: [] },
+  { id: '7', name: '대만 달러', symbol: 'NT$', code: 'TWD', countries: ['5'] },
 ];
 
 export default function CountryManagementPage() {
@@ -87,6 +88,9 @@ export default function CountryManagementPage() {
   const [currencies, setCurrencies] = useState<Currency[]>(dummyCurrencies);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
   const [isEditingCurrency, setIsEditingCurrency] = useState(false);
+  const [selectedCountriesForCurrency, setSelectedCountriesForCurrency] = useState<string[]>([]);
+  const [countrySearch, setCountrySearch] = useState('');
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'country' | 'language' | 'currency' } | null>(null);
@@ -115,6 +119,7 @@ export default function CountryManagementPage() {
 
   const handleEditCurrency = (currency: Currency) => {
     setSelectedCurrency(currency);
+    setSelectedCountriesForCurrency(currency.countries || []);
     setIsEditingCurrency(true);
   };
 
@@ -160,6 +165,7 @@ export default function CountryManagementPage() {
 
   const handleAddCurrency = () => {
     setSelectedCurrency(null);
+    setSelectedCountriesForCurrency([]);
     setIsEditingCurrency(true);
   };
 
@@ -335,11 +341,81 @@ export default function CountryManagementPage() {
                   <h3 className="font-bold text-[18px] text-gray-900">{selectedCurrency ? '통화 편집' : '통화 추가'}</h3>
                   <div className="h-[1px] bg-gray-100 w-full" />
                   <div className="space-y-4">
-                    <div className="flex flex-col gap-2"><label className="text-[14px] font-semibold text-gray-900">통화명 (ex. 원)</label><Input placeholder="통화명을 입력해주세요" defaultValue={selectedCurrency?.name || ''} className="border-gray-200 h-11" /></div>
-                    <div className="flex flex-col gap-2"><label className="text-[14px] font-semibold text-gray-900">통화기호 (ex. ₩)</label><Input placeholder="Currency Symbol" defaultValue={selectedCurrency?.symbol || ''} className="border-gray-200 h-11" /></div>
-                    <div className="flex flex-col gap-2"><label className="text-[14px] font-semibold text-gray-900">통화코드 (ex. KRW)</label><Input placeholder="Currency Code" defaultValue={selectedCurrency?.code || ''} className="border-gray-200 h-11" /></div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[14px] font-semibold text-gray-900">통화명 (ex. 원)</label>
+                      <Input placeholder="통화명을 입력해주세요" defaultValue={selectedCurrency?.name || ''} className="border-gray-200 h-11" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[14px] font-semibold text-gray-900">통화기호 (ex. ₩)</label>
+                      <Input placeholder="통화기호를 입력해주세요" defaultValue={selectedCurrency?.symbol || ''} className="border-gray-200 h-11" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[14px] font-semibold text-gray-900">통화코드 (ex. KRW)</label>
+                      <Input placeholder="통화코드를 입력해주세요" defaultValue={selectedCurrency?.code || ''} className="border-gray-200 h-11" />
+                    </div>
+                    <div className="flex flex-col gap-2 relative">
+                      <label className="text-[14px] font-semibold text-gray-900">국가 선택 (다중선택)</label>
+                      <div 
+                        className="min-h-11 p-2 border border-gray-200 rounded-md flex flex-wrap gap-2 items-center bg-white cursor-pointer"
+                        onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                      >
+                        {selectedCountriesForCurrency.map(countryId => {
+                          const country = countries.find(c => c.id === countryId);
+                          return (
+                            <div key={countryId} className="flex items-center gap-1 bg-[#E8F0FF] text-[#4186FF] px-2 py-1 rounded-md text-[13px] font-medium">
+                              {country?.name}
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCountriesForCurrency(prev => prev.filter(id => id !== countryId));
+                                }}
+                                className="hover:text-blue-700"
+                              >
+                                <Plus className="w-3 h-3 rotate-45" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                        <input 
+                          type="text"
+                          className="flex-1 outline-none text-[14px] min-w-[60px]"
+                          placeholder={selectedCountriesForCurrency.length === 0 ? "국가를 선택해주세요" : ""}
+                          value={countrySearch}
+                          onChange={(e) => {
+                            setCountrySearch(e.target.value);
+                            setIsCountryDropdownOpen(true);
+                          }}
+                        />
+                      </div>
+                      
+                      {isCountryDropdownOpen && (
+                        <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-[200px] overflow-y-auto">
+                          {countries
+                            .filter(c => c.name.includes(countrySearch) && !selectedCountriesForCurrency.includes(c.id))
+                            .map(country => (
+                              <div 
+                                key={country.id} 
+                                className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-[14px]"
+                                onClick={() => {
+                                  setSelectedCountriesForCurrency(prev => [...prev, country.id]);
+                                  setCountrySearch('');
+                                  setIsCountryDropdownOpen(false);
+                                }}
+                              >
+                                {country.name}
+                              </div>
+                            ))}
+                          {countries.filter(c => c.name.includes(countrySearch) && !selectedCountriesForCurrency.includes(c.id)).length === 0 && (
+                            <div className="px-4 py-2 text-gray-400 text-[13px]">검색 결과가 없습니다.</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-3 mt-4"><Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white h-11 font-bold">저장</Button><Button variant="outline" className="w-full border-gray-200 h-11 text-gray-700 font-bold hover:bg-gray-50" onClick={() => setIsEditingCurrency(false)}>취소</Button></div>
+                  <div className="flex flex-col gap-3 mt-4">
+                    <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white h-11 font-bold">저장</Button>
+                    <Button variant="outline" className="w-full border-gray-200 h-11 text-gray-700 font-bold hover:bg-gray-50" onClick={() => setIsEditingCurrency(false)}>취소</Button>
+                  </div>
                 </Card>
               </div>
             )}
