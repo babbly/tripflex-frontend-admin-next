@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface Account {
   id: string;
-  email: string;
+  accountId: string;
   name: string;
   role: '슈퍼 관리자' | '관리자' | '뷰어';
   isActive: boolean;
@@ -28,29 +28,29 @@ export default function AccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([
     {
       id: '1',
-      email: 'mhu@example.com',
+      accountId: 'mhu_admin',
       name: '유명호',
       role: '슈퍼 관리자',
       isActive: true,
     },
     {
       id: '2',
-      email: 'ecjo@example.com',
+      accountId: 'ecjo_staff',
       name: '조은채',
       role: '관리자',
       isActive: true,
     },
     {
       id: '3',
-      email: 'jehur@example.com',
+      accountId: 'jehur_viewer',
       name: '허지은',
       role: '뷰어',
       isActive: false,
     },
   ]);
 
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(accounts[0]);
-  const [isEditing, setIsEditing] = useState(true);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
 
@@ -96,7 +96,7 @@ export default function AccountsPage() {
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search className="w-4 h-4 text-gray-400" />
             </div>
-            <Input type="text" className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" placeholder="이메일, 이름 검색..." />
+            <Input type="text" className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" placeholder="아이디, 이름 검색..." />
           </div>
 
           <div className="flex items-center gap-3">
@@ -104,28 +104,28 @@ export default function AccountsPage() {
               <Plus className="w-4 h-4 mr-2" />
               계정 추가
             </Button>
-            <div className="flex items-center gap-2">
-              <span className="text-[13px] text-gray-500">페이지당</span>
-              <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
-                <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
-                  <SelectValue placeholder="10" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
+          <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+            <span className="text-[13px] text-gray-500">페이지당</span>
+            <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+              <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <AdminTableHeaderRow>
-                  <AdminTableHead className="px-6 py-4">이메일</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4">아이디</AdminTableHead>
                   <AdminTableHead className="px-6 py-4">이름</AdminTableHead>
                   <AdminTableHead className="px-6 py-4">권한 선택</AdminTableHead>
                   <AdminTableHead className="px-6 py-4 text-center">상태</AdminTableHead>
@@ -136,7 +136,7 @@ export default function AccountsPage() {
                 {accounts.map((account) => (
                   <tr key={account.id} className="bg-white hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      {account.email}
+                      {account.accountId}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {account.name}
@@ -221,11 +221,11 @@ export default function AccountsPage() {
           <div className="h-[1px] bg-[#E4E4E7] self-stretch" />
 
           <div className="flex flex-col gap-[16px]">
-            <label className="text-sm font-semibold text-gray-900">이메일</label>
+            <label className="text-sm font-semibold text-gray-900">아이디</label>
             <Input 
-              type="email" 
-              placeholder="이메일을 입력해주세요" 
-              defaultValue={selectedAccount?.email || ''}
+              type="text" 
+              placeholder="아이디를 입력해주세요" 
+              defaultValue={selectedAccount?.accountId || ''}
               className="border-blue-400 focus-visible:ring-[#4186FF] focus-visible:border-[#4186FF]"
             />
           </div>

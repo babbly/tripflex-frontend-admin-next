@@ -55,7 +55,8 @@ export default function PermissionsPage() {
   const ITEMS_PER_PAGE = parseInt(pageSize);
   const [roles, setRoles] = useState<Role[]>(mockRoles);
   const [permissions, setPermissions] = useState<Permission[]>(mockPermissions);
-  const [selectedRole, setSelectedRole] = useState<Role>(mockRoles[0]);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
 
@@ -67,6 +68,10 @@ export default function PermissionsPage() {
   const confirmDelete = () => {
     if (roleToDelete) {
       setRoles(prev => prev.filter(r => r.id !== roleToDelete));
+      if (selectedRole?.id === roleToDelete) {
+        setSelectedRole(null);
+        setIsEditing(false);
+      }
       setRoleToDelete(null);
     }
   };
@@ -79,6 +84,16 @@ export default function PermissionsPage() {
     );
   };
 
+  const handleAddClick = () => {
+    setSelectedRole(null);
+    setIsEditing(true);
+  };
+
+  const handleEditClick = (role: Role) => {
+    setSelectedRole(role);
+    setIsEditing(true);
+  };
+
   return (
     <div className="w-full flex gap-6 pb-12">
       {/* Left Column: Role List */}
@@ -86,7 +101,7 @@ export default function PermissionsPage() {
         <div className="flex justify-between items-center">
           <PageTitle>권한 관리</PageTitle>
           <div className="flex items-center gap-3">
-            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
+            <Button onClick={handleAddClick} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
               <Plus className="w-4 h-4 mr-2" />
               권한 추가
             </Button>
@@ -94,6 +109,19 @@ export default function PermissionsPage() {
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
+          <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+            <span className="text-[13px] text-gray-500">페이지당</span>
+            <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+              <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -108,7 +136,7 @@ export default function PermissionsPage() {
                     <td className="px-6 py-4 font-medium text-gray-900">{role.name}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center space-x-2">
-                        <EditButton onClick={() => setSelectedRole(role)} />
+                        <EditButton onClick={() => handleEditClick(role)} />
                         <DeleteButton onClick={() => handleDeleteClick(role.id)} />
                       </div>
                     </td>
@@ -147,83 +175,90 @@ export default function PermissionsPage() {
       </div>
 
       {/* Right Column: Role Edit Form */}
-      <div className="w-[360px] flex-shrink-0">
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
-          <div>
-            <h2 className="text-[16px] font-[700] text-[#18181B] mb-4 pb-4 border-b border-gray-200">
-              권한 편집
-            </h2>
-          </div>
+      {isEditing && (
+        <div className="w-[360px] flex-shrink-0">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
+            <div>
+              <h2 className="text-[16px] font-[700] text-[#18181B] mb-4 pb-4 border-b border-gray-200">
+                {selectedRole ? '권한 편집' : '권한 추가'}
+              </h2>
+            </div>
 
-          <div className="space-y-2">
-            <Label className="text-[14px] font-[600] text-[#18181B]">권한명</Label>
-            <Input
-              value={selectedRole.name}
-              onChange={(e) => setSelectedRole({ ...selectedRole, name: e.target.value })}
-              className="h-11"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label className="text-[14px] font-[600] text-[#18181B]">권한명</Label>
+              <Input
+                value={selectedRole?.name || ''}
+                onChange={(e) => selectedRole && setSelectedRole({ ...selectedRole, name: e.target.value })}
+                placeholder="권한명을 입력해주세요"
+                className="h-11"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label className="text-[14px] font-[600] text-[#18181B]">권한설정</Label>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full text-left text-sm border-collapse">
-                <thead>
-                  <AdminTableHeaderRow className="border-gray-200 whitespace-normal">
-                    <AdminTableHead className="p-3">페이지</AdminTableHead>
-                    <AdminTableHead className="p-3 text-center">읽기</AdminTableHead>
-                    <AdminTableHead className="p-3 text-center">쓰기</AdminTableHead>
-                    <AdminTableHead className="p-3 text-center">삭제</AdminTableHead>
-                  </AdminTableHeaderRow>
-                </thead>
-                <tbody>
-                  {permissions.map((p) => (
-                    <tr key={p.page} className="border-b border-gray-200 last:border-0 hover:bg-gray-50">
-                      <td className="p-3 flex items-center space-x-2 text-gray-600">
-                        {p.page === '홈 배너 관리' && <ImageIcon className="w-4 h-4 text-gray-500" />}
-                        {p.page === '이미지 분석 목록' && <CustomImageAnalysisIcon className="w-4 h-4 text-gray-500" />}
-                        {p.page === '유저 제안 관리' && <MessageSquare className="w-4 h-4 text-gray-500" />}
-                        {p.page === 'FAQ 관리' && <BookOpen className="w-4 h-4 text-gray-500" />}
-                        <span>{p.page}</span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <Checkbox
-                          checked={p.read}
-                          onCheckedChange={(checked) => handlePermissionChange(p.page, 'read', checked as boolean)}
-                          className={p.read ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
-                        />
-                      </td>
-                      <td className="p-3 text-center">
-                        <Checkbox
-                          checked={p.write}
-                          onCheckedChange={(checked) => handlePermissionChange(p.page, 'write', checked as boolean)}
-                          className={p.write ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
-                        />
-                      </td>
-                      <td className="p-3 text-center">
-                        <Checkbox
-                          checked={p.delete}
-                          onCheckedChange={(checked) => handlePermissionChange(p.page, 'delete', checked as boolean)}
-                          className={p.delete ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              <Label className="text-[14px] font-[600] text-[#18181B]">권한설정</Label>
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <table className="w-full text-left text-sm border-collapse">
+                  <thead>
+                    <AdminTableHeaderRow className="border-gray-200 whitespace-normal">
+                      <AdminTableHead className="p-3">페이지</AdminTableHead>
+                      <AdminTableHead className="p-3 text-center">읽기</AdminTableHead>
+                      <AdminTableHead className="p-3 text-center">쓰기</AdminTableHead>
+                      <AdminTableHead className="p-3 text-center">삭제</AdminTableHead>
+                    </AdminTableHeaderRow>
+                  </thead>
+                  <tbody>
+                    {permissions.map((p) => (
+                      <tr key={p.page} className="border-b border-gray-200 last:border-0 hover:bg-gray-50">
+                        <td className="p-3 flex items-center space-x-2 text-gray-600">
+                          {p.page === '홈 배너 관리' && <ImageIcon className="w-4 h-4 text-gray-500" />}
+                          {p.page === '이미지 분석 목록' && <CustomImageAnalysisIcon className="w-4 h-4 text-gray-500" />}
+                          {p.page === '유저 제안 관리' && <MessageSquare className="w-4 h-4 text-gray-500" />}
+                          {p.page === 'FAQ 관리' && <BookOpen className="w-4 h-4 text-gray-500" />}
+                          <span>{p.page}</span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <Checkbox
+                            checked={p.read}
+                            onCheckedChange={(checked) => handlePermissionChange(p.page, 'read', checked as boolean)}
+                            className={p.read ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
+                          />
+                        </td>
+                        <td className="p-3 text-center">
+                          <Checkbox
+                            checked={p.write}
+                            onCheckedChange={(checked) => handlePermissionChange(p.page, 'write', checked as boolean)}
+                            className={p.write ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
+                          />
+                        </td>
+                        <td className="p-3 text-center">
+                          <Checkbox
+                            checked={p.delete}
+                            onCheckedChange={(checked) => handlePermissionChange(p.page, 'delete', checked as boolean)}
+                            className={p.delete ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="pt-4 flex flex-col space-y-2">
+              <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-11">
+                저장
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full h-11 border-gray-200 text-gray-700 hover:bg-gray-50"
+                onClick={() => setIsEditing(false)}
+              >
+                취소
+              </Button>
             </div>
           </div>
-
-          <div className="pt-4 flex flex-col space-y-2">
-            <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-11">
-              저장
-            </Button>
-            <Button variant="outline" className="w-full h-11 border-gray-200 text-gray-700 hover:bg-gray-50">
-              취소
-            </Button>
-          </div>
         </div>
-      </div>
+      )}
 
       <ConfirmModal
         isOpen={isDeleteModalOpen}

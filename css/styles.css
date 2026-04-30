@@ -48,3 +48,16 @@
 /** Dark/Light Theme Variant **/
 @custom-variant dark (&:is(.dark *));
 @custom-variant light (&:not(.dark *));
+
+/* Zebra striping for tables */
+tbody tr:nth-child(even) {
+  background-color: #f9fafb !important;
+}
+
+/* Disable hover effects on table rows */
+tbody tr:hover {
+  background-color: white !important;
+}
+tbody tr:nth-child(even):hover {
+  background-color: #f9fafb !important;
+}

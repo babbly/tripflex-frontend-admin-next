@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   DndContext,
   closestCenter,
@@ -113,6 +114,7 @@ const generateDummyData = (type: string, count: number): Banner[] => {
 };
 
 export default function BannerPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'top' | 'middle' | 'bottom'>('top');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState('10');
@@ -174,7 +176,7 @@ export default function BannerPage() {
 
   return (
     <div className="w-full flex flex-col gap-[24px]">
-      <PageTitle>홈 배너 관리</PageTitle>
+      <PageTitle>홈 배너 관리 - {tabs.find(t => t.id === activeTab)?.label}</PageTitle>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200">
@@ -197,62 +199,55 @@ export default function BannerPage() {
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-[12px]">
-        <div className="flex items-center w-[380px] h-[40px] px-[14px] py-[10px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
-          <Search className="w-5 h-5 text-[#71717A] shrink-0" />
-          <input 
-            type="text" 
-            className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]" 
-            placeholder="배너 문구 검색" 
-          />
-        </div>
-        
-        <div className="flex items-center gap-[8px]">
-          <div className="flex items-center w-[160px] h-[40px] px-[12px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
-            <Calendar className="w-4 h-4 text-[#71717A]" />
-            <input type="text" placeholder="시작 날짜" className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" />
+      {/* Filters & Add Button */}
+      <div className="flex flex-wrap items-center justify-between gap-[12px]">
+        <div className="flex flex-wrap items-center gap-[12px]">
+          <div className="flex items-center w-[380px] h-[40px] px-[14px] py-[10px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
+            <Search className="w-5 h-5 text-[#71717A] shrink-0" />
+            <input 
+              type="text" 
+              className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]" 
+              placeholder="배너 문구 검색" 
+            />
           </div>
-          <span className="text-gray-400">~</span>
-          <div className="flex items-center w-[160px] h-[40px] px-[12px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
-            <Calendar className="w-4 h-4 text-[#71717A]" />
-            <input type="text" placeholder="종료 날짜" className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" />
+          
+          <div className="flex items-center gap-[8px]">
+            <div className="flex items-center w-[160px] h-[40px] px-[12px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
+              <Calendar className="w-4 h-4 text-[#71717A]" />
+              <input type="text" placeholder="시작 날짜" className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" />
+            </div>
+            <span className="text-gray-400">~</span>
+            <div className="flex items-center w-[160px] h-[40px] px-[12px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
+              <Calendar className="w-4 h-4 text-[#71717A]" />
+              <input type="text" placeholder="종료 날짜" className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Header & Add Button */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-[18px] font-[700] text-[#18181B]">
-          {tabs.find(t => t.id === activeTab)?.label}
-        </h2>
-        <div className="flex items-center gap-4">
-          <Link href="/banner/create">
-            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
-              <Plus className="w-4 h-4 mr-2" />
-              배너 추가
-            </Button>
-          </Link>
-        </div>
+        <Link href="/banner/create">
+          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
+            <Plus className="w-4 h-4 mr-2" />
+            배너 추가
+          </Button>
+        </Link>
       </div>
 
       {/* Table Section */}
       <div className="space-y-4">
-        <div className="flex justify-end items-center gap-2">
-          <span className="text-[13px] text-gray-500">페이지당</span>
-          <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
-            <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
-              <SelectValue placeholder="10" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
+          <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+            <span className="text-[13px] text-gray-500">페이지당</span>
+            <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+              <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -275,7 +270,7 @@ export default function BannerPage() {
                         banner={banner}
                         onToggle={toggleStatus}
                         onDelete={deleteBanner}
-                        onEdit={() => alert('배너 수정 모달이 열립니다.')}
+                        onEdit={(id) => router.push(`/banner/${id}`)}
                       />
                     ))}
                   </SortableContext>

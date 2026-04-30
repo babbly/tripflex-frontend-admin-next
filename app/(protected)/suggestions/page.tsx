@@ -110,23 +110,23 @@ export default function SuggestionsPage() {
             <Download className="w-4 h-4 mr-2" />
             전체 JSON 다운로드
           </Button>
-          <div className="flex items-center gap-2">
-            <span className="text-[13px] text-gray-500">페이지당</span>
-            <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
-              <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
-                <SelectValue placeholder="10" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
+        <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+          <span className="text-[13px] text-gray-500">페이지당</span>
+          <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+            <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+              <SelectValue placeholder="10" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

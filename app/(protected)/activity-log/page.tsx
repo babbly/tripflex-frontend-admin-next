@@ -143,11 +143,14 @@ export default function ActivityLogPage() {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[14px] text-[#71717A] mr-2">페이지당</span>
+      {/* Table */}
+      <div className="bg-white rounded-[12px] border border-gray-200 flex flex-col shadow-sm overflow-hidden">
+        <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+          <span className="text-[13px] text-gray-500">페이지당</span>
           <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
-            <SelectTrigger className="w-[100px] h-11 text-sm border-gray-200 rounded-[8px]">
+            <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
               <SelectValue placeholder="10" />
             </SelectTrigger>
             <SelectContent>
@@ -157,14 +160,10 @@ export default function ActivityLogPage() {
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-[12px] border border-gray-200 flex flex-col shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <AdminTableHeaderRow className="bg-white border-b border-gray-100">
+              <AdminTableHeaderRow className="bg-gray-50 border-b border-gray-100">
                 <AdminTableHead className="px-6 py-5 text-[13px] font-[600] text-[#71717A]">시간</AdminTableHead>
                 <AdminTableHead className="px-6 py-5 text-[13px] font-[600] text-[#71717A]">메뉴</AdminTableHead>
                 <AdminTableHead className="px-6 py-5 text-[13px] font-[600] text-[#71717A]">작업 유형</AdminTableHead>

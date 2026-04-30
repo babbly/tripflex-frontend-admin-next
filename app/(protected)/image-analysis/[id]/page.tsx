@@ -40,16 +40,19 @@ const CustomDownloadIcon = ({ className }: { className?: string }) => (
 );
 
 export default function ImageAnalysisDetailPage() {
-  // In a real app, you would fetch data based on the ID from useParams()
-  // const params = useParams();
-  // const { id } = params;
-
   const [detailData] = useState({
     id: '1',
     deviceId: 'DEV-20483A',
-    countryFlag: '🇯🇵',
-    countryName: '일본',
-    analysisDate: '2026-03-19 14:32:05',
+    country: '일본',
+    countryCode: 'JP',
+    analyzedAt: '2026-03-19 14:32:05',
+    metrics: {
+      imageProcessing: '2.41',
+      ocr: '2.41',
+      ai: '2.41',
+      translation: '2.41',
+      total: '2.41'
+    },
     analyzedImages: [1, 2, 3, 4, 5],
     originalImages: [1, 2, 3, 4, 5],
   });
@@ -57,40 +60,74 @@ export default function ImageAnalysisDetailPage() {
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center space-x-3">
-        <Link href="/image-analysis">
-          <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-gray-100 rounded-full">
-            <ArrowLeft className="w-5 h-5 text-gray-800" />
-          </Button>
-        </Link>
-        <PageTitle>이미지 분석 상세</PageTitle>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <Link href="/image-analysis">
+            <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-gray-100 rounded-full">
+              <ArrowLeft className="w-5 h-5 text-gray-800" />
+            </Button>
+          </Link>
+          <PageTitle>이미지 분석 상세</PageTitle>
+        </div>
       </div>
 
-      {/* Info Card */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 flex justify-between items-center">
-        <div className="flex items-center space-x-8">
-          <div>
-            <div className="text-[12px] text-gray-500 mb-1">디바이스 ID</div>
-            <div className="font-semibold text-gray-900">{detailData.deviceId}</div>
-          </div>
-          <div className="w-px h-10 bg-gray-200"></div>
-          <div>
-            <div className="text-[12px] text-gray-500 mb-1">국가</div>
-            <div className="font-semibold text-gray-900 flex items-center">
-              <span className="mr-1">{detailData.countryFlag}</span>
-              {detailData.countryName}
+      {/* Main Info Card */}
+      <div className="bg-white rounded-lg border border-gray-200 p-8 relative">
+        {/* Action Buttons at Top Right */}
+        <div className="absolute top-8 right-8 flex items-center space-x-3">
+          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-6 rounded-lg">
+            <Download className="w-4 h-4 mr-2" />
+            전체 JSON 다운로드
+          </Button>
+          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-6 rounded-lg">
+            <Download className="w-4 h-4 mr-2" />
+            전체 IMAGE 다운로드
+          </Button>
+        </div>
+
+        {/* Info Grid */}
+        <div className="space-y-8">
+          <div className="flex space-x-12">
+            <div className="min-w-[120px]">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">디바이스 ID</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.deviceId}</div>
+            </div>
+            <div className="min-w-[80px]">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">국가</div>
+              <div className="flex items-center space-x-1.5">
+                <span className="text-[14px]">🇯🇵</span>
+                <span className="text-[15px] font-bold text-gray-900">{detailData.country}</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">분석 일시</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.analyzedAt}</div>
             </div>
           </div>
-          <div className="w-px h-10 bg-gray-200"></div>
-          <div>
-            <div className="text-[12px] text-gray-500 mb-1">분석 일시</div>
-            <div className="font-semibold text-gray-900">{detailData.analysisDate}</div>
+
+          <div className="flex space-x-12 border-t border-gray-50 pt-6">
+            <div className="min-w-[60px]">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">이미지 처리시간</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.imageProcessing}</div>
+            </div>
+            <div className="min-w-[60px]">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">OCR</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.ocr}</div>
+            </div>
+            <div className="min-w-[60px]">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">AI</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.ai}</div>
+            </div>
+            <div className="min-w-[60px]">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">번역</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.translation}</div>
+            </div>
+            <div className="min-w-[60px]">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">총 합</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.metrics.total}</div>
+            </div>
           </div>
         </div>
-        <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[38px] px-4">
-          <Download className="w-4 h-4 mr-2" />
-          JSON 다운로드
-        </Button>
       </div>
 
       {/* Analyzed Images Section */}
@@ -99,19 +136,22 @@ export default function ImageAnalysisDetailPage() {
           <ScanIcon className="w-5 h-5 text-[#4186FF]" />
           <h2 className="text-[16px] font-[700] text-gray-900">분석 이미지</h2>
         </div>
-        <div className="grid grid-cols-5 gap-4">
+        <div className="flex flex-wrap gap-4">
           {detailData.analyzedImages.map((item, index) => (
-            <div key={`analyzed-${index}`} className="flex flex-col space-y-3">
-              <div className="aspect-square bg-[#EEF2FF] rounded-lg flex items-center justify-center border border-[#E0E7FF]">
-                <ScanPlaceholderIcon className="w-12 h-12 text-[#4186FF] opacity-50" />
+            <div key={`analyzed-${index}`} className="flex flex-col space-y-3" style={{ width: '206px' }}>
+              <div 
+                className="bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF]"
+                style={{ width: '206px', height: '145px' }}
+              >
+                <ScanPlaceholderIcon className="w-10 h-10 text-[#4186FF] opacity-60" />
               </div>
-              <div className="flex space-x-2">
-                <Button variant="outline" className="flex-1 h-9 px-0 border-gray-200 hover:bg-gray-50 text-[#737373] text-[13px] font-[600] leading-normal">
-                  <CustomDownloadIcon className="w-4 h-4 mr-1.5" />
+              <div className="flex flex-col space-y-2">
+                <Button variant="outline" className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2">
+                  <Download className="w-3 h-3 mr-1" />
                   이미지
                 </Button>
-                <Button variant="outline" className="flex-1 h-9 px-0 border-gray-200 hover:bg-gray-50 text-[#737373] text-[13px] font-[600] leading-normal">
-                  <CustomDownloadIcon className="w-4 h-4 mr-1.5" />
+                <Button variant="outline" className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2">
+                  <Download className="w-3 h-3 mr-1" />
                   JSON
                 </Button>
               </div>
@@ -126,21 +166,23 @@ export default function ImageAnalysisDetailPage() {
           <ImageIcon className="w-5 h-5 text-gray-600" />
           <h2 className="text-[16px] font-[700] text-gray-900">원본 이미지</h2>
         </div>
-        <div className="grid grid-cols-5 gap-4">
+        <div className="flex flex-wrap gap-4">
           {detailData.originalImages.map((item, index) => (
-            <div key={`original-${index}`} className="flex flex-col space-y-3">
-              <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
-                <OriginalPlaceholderIcon className="w-12 h-12 text-[#A1A1AA]" />
+            <div key={`original-${index}`} className="flex flex-col space-y-3" style={{ width: '206px' }}>
+              <div 
+                className="bg-gray-100 rounded-lg flex items-center justify-center border border-gray-100"
+                style={{ width: '206px', height: '145px' }}
+              >
+                <ImageIcon className="w-8 h-8 text-gray-300" />
               </div>
-              <Button variant="outline" className="w-full h-9 border-gray-200 hover:bg-gray-50 text-[#737373] text-[13px] font-[600] leading-normal">
-                <CustomDownloadIcon className="w-4 h-4 mr-1.5" />
+              <Button variant="outline" className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2">
+                <Download className="w-3 h-3 mr-1" />
                 이미지
               </Button>
             </div>
           ))}
         </div>
       </div>
-
     </div>
   );
 }

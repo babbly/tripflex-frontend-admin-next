@@ -16,8 +16,9 @@ interface AnalysisRecord {
   countryFlag: string;
   countryName: string;
   analysisDate: string;
+  imageProcessingTime: string;
   ocrTime: string;
-  aiModelTime: string;
+  aiTime: string;
   translationTime: string;
   totalTime: string;
 }
@@ -34,8 +35,9 @@ export default function ImageAnalysisPage() {
       countryFlag: '🇯🇵',
       countryName: '일본',
       analysisDate: '2026-03-19 14:32:05',
+      imageProcessingTime: '2.41',
       ocrTime: '2.41',
-      aiModelTime: '2.41',
+      aiTime: '2.41',
       translationTime: '2.41',
       totalTime: '2.41',
     },
@@ -45,8 +47,9 @@ export default function ImageAnalysisPage() {
       countryFlag: '🇫🇷',
       countryName: '프랑스',
       analysisDate: '2026-03-19 13:58:42',
+      imageProcessingTime: '3.11',
       ocrTime: '3.11',
-      aiModelTime: '3.11',
+      aiTime: '3.11',
       translationTime: '3.11',
       totalTime: '3.11',
     },
@@ -56,8 +59,9 @@ export default function ImageAnalysisPage() {
       countryFlag: '🇺🇸',
       countryName: '미국',
       analysisDate: '2026-03-19 13:21:17',
+      imageProcessingTime: '1.88',
       ocrTime: '1.88',
-      aiModelTime: '1.88',
+      aiTime: '1.88',
       translationTime: '1.88',
       totalTime: '1.88',
     },
@@ -118,8 +122,9 @@ export default function ImageAnalysisPage() {
                 <SelectValue placeholder="처리시간 타입" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="IMAGE">이미지 처리시간</SelectItem>
                 <SelectItem value="OCR">OCR</SelectItem>
-                <SelectItem value="AI">AI Model</SelectItem>
+                <SelectItem value="AI">AI</SelectItem>
                 <SelectItem value="TRANSLATION">번역</SelectItem>
                 <SelectItem value="TOTAL">총합</SelectItem>
               </SelectContent>
@@ -147,25 +152,24 @@ export default function ImageAnalysisPage() {
               <Download className="w-4 h-4 mr-2" />
               전체 JSON 다운로드
             </Button>
-            
-            <div className="flex items-center gap-2 ml-2">
-              <span className="text-[13px] text-gray-500">페이지당</span>
-              <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
-                <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
-                  <SelectValue placeholder="10" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
+        <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+          <span className="text-[13px] text-gray-500">페이지당</span>
+          <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+            <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+              <SelectValue placeholder="10" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -173,8 +177,9 @@ export default function ImageAnalysisPage() {
                 <AdminTableHead className="px-6 py-4">디바이스 ID</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">국가</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">분석 일시</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">이미지 처리시간</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">OCR</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">AI Model 서버 처리</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">AI</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">번역</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">총합</AdminTableHead>
                 <AdminTableHead className="px-6 py-4 text-center">JSON</AdminTableHead>
@@ -197,10 +202,13 @@ export default function ImageAnalysisPage() {
                     {record.analysisDate}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
+                    {record.imageProcessingTime}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
                     {record.ocrTime}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {record.aiModelTime}
+                    {record.aiTime}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {record.translationTime}

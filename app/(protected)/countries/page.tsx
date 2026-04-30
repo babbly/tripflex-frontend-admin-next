@@ -10,6 +10,7 @@ import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Country {
   id: string;
@@ -90,16 +91,17 @@ export default function CountryManagementPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'country' | 'language' | 'currency' } | null>(null);
   const [page, setPage] = useState(1);
-  const itemsPerPage = 10;
+  const [pageSize, setPageSize] = useState('10');
+  const itemsPerPage = parseInt(pageSize);
 
   const currentCountries = countries.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalCountryPages = Math.ceil(countries.length / itemsPerPage);
+  const totalCountryPages = Math.max(1, Math.ceil(countries.length / itemsPerPage));
 
   const currentLanguages = languages.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalLanguagePages = Math.ceil(languages.length / itemsPerPage);
+  const totalLanguagePages = Math.max(1, Math.ceil(languages.length / itemsPerPage));
 
   const currentCurrencies = currencies.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalCurrencyPages = Math.ceil(currencies.length / itemsPerPage);
+  const totalCurrencyPages = Math.max(1, Math.ceil(currencies.length / itemsPerPage));
 
   const handleEditCountry = (country: Country) => {
     setSelectedCountry(country);
@@ -161,9 +163,15 @@ export default function CountryManagementPage() {
     setIsEditingCurrency(true);
   };
 
+  const tabLabels: { [key: string]: string } = {
+    country: '국가관리',
+    language: '언어관리',
+    currency: '통화관리',
+  };
+
   return (
     <div className="w-full flex flex-col gap-6 pb-12">
-      <PageTitle>국가 관리</PageTitle>
+      <PageTitle>국가 관리 - {tabLabels[activeTab]}</PageTitle>
 
       <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val); setPage(1); }} className="w-full">
         <TabsList variant="line" size="lg" className="mb-6">
@@ -179,6 +187,19 @@ export default function CountryManagementPage() {
                 <Button onClick={handleAddCountry} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"><Plus className="w-4 h-4 mr-2" />국가 추가</Button>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+                  <span className="text-[13px] text-gray-500">페이지당</span>
+                  <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+                    <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+                      <SelectValue placeholder="10" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <table className="w-full text-left border-collapse">
                   <thead><AdminTableHeaderRow><AdminTableHead className="px-6 py-4 w-[80%]">국가명</AdminTableHead><AdminTableHead className="px-6 py-4 text-center">관리</AdminTableHead></AdminTableHeaderRow></thead>
                   <tbody className="divide-y divide-gray-100">
@@ -222,6 +243,19 @@ export default function CountryManagementPage() {
                 <Button onClick={handleAddLanguage} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"><Plus className="w-4 h-4 mr-2" />언어 추가</Button>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+                  <span className="text-[13px] text-gray-500">페이지당</span>
+                  <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+                    <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+                      <SelectValue placeholder="10" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <table className="w-full text-left border-collapse">
                   <thead><AdminTableHeaderRow><AdminTableHead className="px-6 py-4 w-[80%]">언어명</AdminTableHead><AdminTableHead className="px-6 py-4 text-center">관리</AdminTableHead></AdminTableHeaderRow></thead>
                   <tbody className="divide-y divide-gray-100">
@@ -264,6 +298,19 @@ export default function CountryManagementPage() {
                 <Button onClick={handleAddCurrency} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"><Plus className="w-4 h-4 mr-2" />통화 추가</Button>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
+                  <span className="text-[13px] text-gray-500">페이지당</span>
+                  <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+                    <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+                      <SelectValue placeholder="10" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <table className="w-full text-left border-collapse">
                   <thead><AdminTableHeaderRow><AdminTableHead className="px-6 py-4 w-[80%]">통화명</AdminTableHead><AdminTableHead className="px-6 py-4 text-center">관리</AdminTableHead></AdminTableHeaderRow></thead>
                   <tbody className="divide-y divide-gray-100">
