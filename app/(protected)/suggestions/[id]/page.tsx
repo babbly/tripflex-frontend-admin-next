@@ -34,92 +34,183 @@ const CustomDownloadIcon = ({ className }: { className?: string }) => (
 );
 
 export default function SuggestionDetailPage() {
-  const [detailData, setDetailData] = useState({
+  const [detailData] = useState({
     id: '1',
     deviceId: 'DEV-20483A',
-    category: '잘못된 번역이 나옵니다.',
+    tag: '번역',
     content: '메뉴판 번역 결과가 일부 잘못되었습니다',
     suggestionDate: '2026-03-19 14:32',
-    isConfirmed: false,
     analyzedImages: [1, 2, 3, 4, 5],
     originalImages: [1, 2, 3, 4, 5],
   });
 
-  const toggleStatus = () => {
-    setDetailData((prev) => ({ ...prev, isConfirmed: !prev.isConfirmed }));
+  const [comments, setComments] = useState([
+    {
+      id: 1,
+      author: '유명호',
+      date: '2026-03-19 14:32',
+      status: '확인완료',
+      content: '이미지가 올바릅니다',
+    },
+    {
+      id: 2,
+      author: '유명호',
+      date: '2026-03-20 14:32',
+      status: '미확인',
+      content: '이미지가 올바릅니다',
+    },
+    {
+      id: 3,
+      author: '유명호',
+      date: '2026-03-21 14:32',
+      status: '미확인',
+      content: '이미지가 올바릅니다',
+    },
+  ]);
+
+  const [newComment, setNewComment] = useState('');
+
+  const handleAddComment = () => {
+    if (!newComment.trim()) return;
+    const comment = {
+      id: Date.now(),
+      author: '유명호',
+      date: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      status: '미확인',
+      content: newComment,
+    };
+    setComments([...comments, comment]);
+    setNewComment('');
+  };
+
+  const handleToggleCommentStatus = (id: number) => {
+    setComments((prev) =>
+      prev.map((comment) =>
+        comment.id === id && comment.status === '미확인'
+          ? { ...comment, status: '확인완료' }
+          : comment
+      )
+    );
   };
 
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center space-x-3">
-        <Link href="/suggestions">
-          <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-gray-100 rounded-full">
-            <ArrowLeft className="w-5 h-5 text-gray-800" />
-          </Button>
-        </Link>
-        <PageTitle>유저 제안 상세</PageTitle>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <Link href="/suggestions">
+            <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-gray-100 rounded-full">
+              <ArrowLeft className="w-5 h-5 text-gray-800" />
+            </Button>
+          </Link>
+          <PageTitle>유저 제안 상세</PageTitle>
+        </div>
       </div>
 
-      {/* Info Card */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-8">
+      {/* Main Info Card */}
+      <div className="bg-white rounded-lg border border-gray-200 p-8 flex flex-col space-y-8 relative">
+        {/* Action Buttons at Top Right */}
+        <div className="absolute top-8 right-8 flex items-center space-x-3">
+          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-6">
+            <Download className="w-4 h-4 mr-2" />
+            전체 JSON 다운로드
+          </Button>
+          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-6">
+            <Download className="w-4 h-4 mr-2" />
+            전체 IMAGE 다운로드
+          </Button>
+        </div>
+
+        <div className="flex flex-col space-y-6 max-w-[60%]">
+          <div className="flex space-x-12">
             <div>
-              <div className="text-[12px] text-gray-500 mb-1">디바이스 ID</div>
-              <div className="font-semibold text-gray-900">{detailData.deviceId}</div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5">디바이스 ID</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.deviceId}</div>
             </div>
-            <div className="w-px h-10 bg-gray-200"></div>
             <div>
-              <div className="text-[12px] text-gray-500 mb-1">카테고리</div>
-              <Badge variant="secondary" className="bg-[#eef1ff] text-[#1c2340] hover:bg-[#eef1ff] font-normal px-2.5 py-0.5">
-                {detailData.category}
-              </Badge>
-            </div>
-            <div className="w-px h-10 bg-gray-200"></div>
-            <div>
-              <div className="text-[12px] text-gray-500 mb-1">제안 일시</div>
-              <div className="font-semibold text-gray-900">{detailData.suggestionDate}</div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5">제안 일시</div>
+              <div className="text-[15px] font-bold text-gray-900">{detailData.suggestionDate}</div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500 font-medium">확인 여부</span>
-              <Switch checked={detailData.isConfirmed} onCheckedChange={toggleStatus} />
-            </div>
-            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[38px] px-4">
-              <Download className="w-4 h-4 mr-2" />
-              JSON 다운로드
-            </Button>
+          <div>
+            <div className="text-[12px] text-gray-400 font-medium mb-1.5">태그</div>
+            <Badge className="bg-[#EEF1FF] text-[#4186FF] text-[11px] font-[600] border-none shadow-none px-3 py-1">
+              {detailData.tag}
+            </Badge>
+          </div>
+
+          <div>
+            <div className="text-[12px] text-gray-400 font-medium mb-1.5">상세 내용</div>
+            <div className="text-[14px] text-gray-900 leading-relaxed">{detailData.content}</div>
           </div>
         </div>
 
-        <div>
-          <div className="text-[12px] text-gray-500 mb-1">상세 내용</div>
-          <div className="text-sm text-gray-900">{detailData.content}</div>
+        {/* Comments Section */}
+        <div className="space-y-4">
+          <div className="text-[12px] text-gray-400 font-medium">담당자 의견</div>
+          <div className="space-y-3">
+            {comments.map((comment) => (
+              <div key={comment.id} className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-semibold text-gray-600">{comment.author}</span>
+                  <span className="text-[12px] text-gray-400">{comment.date}</span>
+                  <Badge 
+                    onClick={() => handleToggleCommentStatus(comment.id)}
+                    className={`${
+                      comment.status === '확인완료' 
+                        ? 'bg-[#EEF1FF] text-[#4186FF] cursor-default opacity-80' 
+                        : 'bg-gray-100 text-gray-500 cursor-pointer hover:bg-gray-200 transition-colors'
+                    } text-[10px] font-[600] border-none shadow-none px-2 py-0.5`}
+                  >
+                    {comment.status}
+                  </Badge>
+                </div>
+                <div className="bg-[#F8F9FB] rounded-lg p-3 text-[13px] text-gray-600">
+                  {comment.content}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-2 flex flex-col space-y-3">
+            <textarea 
+              className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[50px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none"
+              placeholder="내용을 입력해주세요"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            />
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleAddComment}
+                className="bg-[#4186FF] hover:bg-blue-600 text-white text-[13px] font-[600] h-9 px-6 rounded-md shadow-sm"
+              >
+                작성
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Analyzed Images Section */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
         <div className="flex items-center space-x-2 mb-6">
-          <ScanIcon className="w-5 h-5 text-[#4186FF]" />
+          <Expand className="w-5 h-5 text-[#4186FF]" />
           <h2 className="text-[16px] font-[700] text-gray-900">분석 이미지</h2>
         </div>
         <div className="grid grid-cols-5 gap-4">
           {detailData.analyzedImages.map((item, index) => (
             <div key={`analyzed-${index}`} className="flex flex-col space-y-3">
-              <div className="aspect-[4/3] bg-[#EEF2FF] rounded-lg flex items-center justify-center border border-[#E0E7FF]">
-                <ScanPlaceholderIcon className="w-12 h-12 text-[#4186FF]" />
+              <div className="aspect-[4/3] bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF]">
+                <ScanPlaceholderIcon className="w-12 h-12 text-[#4186FF] opacity-60" />
               </div>
               <div className="flex space-x-2">
-                <Button variant="outline" className="flex-1 h-9 px-0 border-gray-200 hover:bg-gray-50 text-[#737373] text-[13px] font-[600] leading-normal">
-                  <CustomDownloadIcon className="w-4 h-4 mr-1.5" />
+                <Button variant="outline" className="flex-1 h-9 border-gray-100 hover:bg-gray-50 text-gray-500 text-[12px] font-[600]">
+                  <Download className="w-3.5 h-3.5 mr-1.5" />
                   이미지
                 </Button>
-                <Button variant="outline" className="flex-1 h-9 px-0 border-gray-200 hover:bg-gray-50 text-[#737373] text-[13px] font-[600] leading-normal">
-                  <CustomDownloadIcon className="w-4 h-4 mr-1.5" />
+                <Button variant="outline" className="flex-1 h-9 border-gray-100 hover:bg-gray-50 text-gray-500 text-[12px] font-[600]">
+                  <Download className="w-3.5 h-3.5 mr-1.5" />
                   JSON
                 </Button>
               </div>
@@ -137,18 +228,17 @@ export default function SuggestionDetailPage() {
         <div className="grid grid-cols-5 gap-4">
           {detailData.originalImages.map((item, index) => (
             <div key={`original-${index}`} className="flex flex-col space-y-3">
-              <div className="aspect-[4/3] bg-gray-200 rounded-lg flex items-center justify-center border border-gray-200">
-                <ImageIcon className="w-8 h-8 text-gray-400" />
+              <div className="aspect-[4/3] bg-gray-100 rounded-lg flex items-center justify-center border border-gray-100">
+                <ImageIcon className="w-10 h-10 text-gray-300" />
               </div>
-              <Button variant="outline" className="w-full h-9 border-gray-200 hover:bg-gray-50 text-[#737373] text-[13px] font-[600] leading-normal">
-                <CustomDownloadIcon className="w-4 h-4 mr-1.5" />
+              <Button variant="outline" className="w-full h-9 border-gray-100 hover:bg-gray-50 text-gray-500 text-[12px] font-[600]">
+                <Download className="w-3.5 h-3.5 mr-1.5" />
                 이미지
               </Button>
             </div>
           ))}
         </div>
       </div>
-
     </div>
   );
 }

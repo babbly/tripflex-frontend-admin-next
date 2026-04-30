@@ -10,6 +10,7 @@ import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-rea
 import { EditButton, DeleteButton } from '@/components/ui/action-buttons';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Account {
   id: string;
@@ -21,7 +22,8 @@ interface Account {
 
 export default function AccountsPage() {
   const [page, setPage] = useState(1);
-  const ITEMS_PER_PAGE = 3;
+  const [pageSize, setPageSize] = useState('10');
+  const ITEMS_PER_PAGE = parseInt(pageSize);
 
   const [accounts, setAccounts] = useState<Account[]>([
     {
@@ -86,42 +88,60 @@ export default function AccountsPage() {
       <div className="flex-1 flex flex-col space-y-6">
         <div className="flex justify-between items-center">
           <PageTitle>계정 관리</PageTitle>
-          <Button onClick={handleAddClick} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold leading-normal h-9 px-4">
-            <Plus className="w-4 h-4 mr-2" />
-            계정 추가
-          </Button>
         </div>
 
-        {/* Search */}
-        <div className="relative w-[280px]">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <Search className="w-4 h-4 text-gray-400" />
+        {/* Search & Actions */}
+        <div className="flex justify-between items-center">
+          <div className="relative w-[280px]">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="w-4 h-4 text-gray-400" />
+            </div>
+            <Input type="text" className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" placeholder="이메일, 이름 검색..." />
           </div>
-          <Input type="text" className="pl-9 h-10 border-gray-200 bg-white text-[#71717A] placeholder:text-[#71717A]" placeholder="이메일, 이름 검색..." />
+
+          <div className="flex items-center gap-3">
+            <Button onClick={handleAddClick} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold leading-normal h-9 px-4">
+              <Plus className="w-4 h-4 mr-2" />
+              계정 추가
+            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] text-gray-500">페이지당</span>
+              <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+                <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
+                  <SelectValue placeholder="10" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 flex flex-col">
+        <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <AdminTableHeaderRow>
-                  <AdminTableHead>이메일</AdminTableHead>
-                  <AdminTableHead>이름</AdminTableHead>
-                  <AdminTableHead>권한 선택</AdminTableHead>
-                  <AdminTableHead className="w-24 text-center">상태</AdminTableHead>
-                  <AdminTableHead className="w-24 text-center">관리</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4">이메일</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4">이름</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4">권한 선택</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4 text-center">상태</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4 text-center">관리</AdminTableHead>
                 </AdminTableHeaderRow>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {accounts.map((account) => (
-                  <tr key={account.id} className="border-b last:border-0 bg-white hover:bg-gray-50">
-                    <td className="p-4 text-sm font-medium text-gray-900">
+                  <tr key={account.id} className="bg-white hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {account.email}
                     </td>
-                    <td className="p-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-600">
                       {account.name}
                     </td>
-                    <td className="p-4">
+                    <td className="px-6 py-4">
                       <Badge 
                         variant="secondary" 
                         className="bg-[#eef1ff] text-[#1C2340] text-[11px] font-[600] leading-normal hover:bg-[#eef1ff]"
@@ -129,7 +149,7 @@ export default function AccountsPage() {
                         {account.role}
                       </Badge>
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="px-6 py-4 text-center">
                       <div className="flex justify-center">
                         <Badge 
                           variant="secondary" 
@@ -144,8 +164,8 @@ export default function AccountsPage() {
                         </Badge>
                       </div>
                     </td>
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center space-x-1">
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center space-x-2">
                         <EditButton onClick={() => handleEditClick(account)} />
                         <DeleteButton onClick={() => handleDeleteClick(account.id)} />
                       </div>
@@ -157,11 +177,11 @@ export default function AccountsPage() {
           </div>
           
           {/* Pagination */}
-          <div className="flex justify-end p-4 items-center space-x-2 bg-[#F9FAFB] border-t border-[#E4E4E7]">
+          <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
             <Button
               variant="outline"
               size="icon"
-              className="w-8 h-8 p-0 border-gray-200 text-gray-500 hover:bg-gray-50"
+              className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
             >
@@ -172,7 +192,7 @@ export default function AccountsPage() {
                 key={p}
                 variant={p === page ? 'default' : 'outline'}
                 size="icon"
-                className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600 border-transparent' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
                 onClick={() => setPage(p)}
               >
                 {p}
@@ -181,7 +201,7 @@ export default function AccountsPage() {
             <Button
               variant="outline"
               size="icon"
-              className="w-8 h-8 p-0 border-gray-200 text-gray-500 hover:bg-gray-50"
+              className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
             >

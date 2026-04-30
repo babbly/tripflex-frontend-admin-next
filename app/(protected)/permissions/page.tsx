@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 interface Role {
   id: string;
   name: string;
@@ -49,6 +50,9 @@ const mockPermissions: Permission[] = [
 ];
 
 export default function PermissionsPage() {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState('10');
+  const ITEMS_PER_PAGE = parseInt(pageSize);
   const [roles, setRoles] = useState<Role[]>(mockRoles);
   const [permissions, setPermissions] = useState<Permission[]>(mockPermissions);
   const [selectedRole, setSelectedRole] = useState<Role>(mockRoles[0]);
@@ -81,26 +85,28 @@ export default function PermissionsPage() {
       <div className="flex-1 space-y-4">
         <div className="flex justify-between items-center">
           <PageTitle>권한 관리</PageTitle>
-          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal">
-            <Plus className="w-4 h-4 mr-2" />
-            권한 추가
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
+              <Plus className="w-4 h-4 mr-2" />
+              권한 추가
+            </Button>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 flex flex-col">
+        <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <AdminTableHeaderRow className="border-gray-200">
-                  <AdminTableHead>권한명</AdminTableHead>
-                  <AdminTableHead className="w-32 text-center">관리</AdminTableHead>
+                <AdminTableHeaderRow>
+                  <AdminTableHead className="px-6 py-4">권한명</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4 w-32 text-center">관리</AdminTableHead>
                 </AdminTableHeaderRow>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {roles.map((role) => (
-                  <tr key={role.id} className="border-b border-gray-200 hover:bg-gray-50 group">
-                    <td className="p-4 font-medium text-gray-900">{role.name}</td>
-                    <td className="p-4">
+                  <tr key={role.id} className="bg-white hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-gray-900">{role.name}</td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center justify-center space-x-2">
                         <EditButton onClick={() => setSelectedRole(role)} />
                         <DeleteButton onClick={() => handleDeleteClick(role.id)} />
@@ -111,25 +117,28 @@ export default function PermissionsPage() {
               </tbody>
             </table>
           </div>
-          <div className="flex justify-end p-4 items-center space-x-2 bg-[#F9FAFB] rounded-b-lg border-t border-[#E4E4E7]">
+          {/* Pagination */}
+          <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
             <Button
               variant="outline"
               size="icon"
-              className="w-8 h-8 p-0 border-gray-200 text-gray-500 hover:bg-gray-50 opacity-50 cursor-not-allowed"
+              className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30"
+              disabled
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
             <Button
               variant="default"
               size="icon"
-              className="w-8 h-8 p-0 bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600"
+              className="w-8 h-8 p-0 bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600 border-transparent shadow-sm"
             >
               1
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="w-8 h-8 p-0 border-gray-200 text-gray-500 hover:bg-gray-50 opacity-50 cursor-not-allowed"
+              className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30"
+              disabled
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
