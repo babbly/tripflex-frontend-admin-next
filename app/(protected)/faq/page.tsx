@@ -70,18 +70,20 @@ export default function FAQPage() {
             <AccordionItem
               key={faq.id}
               value={faq.id}
-              className="group bg-white border border-[#E4E4E7] rounded-[12px] overflow-hidden shadow-sm transition-all data-[state=open]:border-[#4186FF] px-0"
+              className="group bg-white border border-[#E4E4E7] rounded-[12px] overflow-hidden shadow-sm transition-all px-0"
             >
-              {/* Custom Header with Buttons and Trigger */}
-              <div className="flex items-center justify-between px-6 w-full">
+              <div className="relative">
                 <AccordionTrigger 
-                  className="flex-1 py-6 hover:no-underline text-left text-[16px] font-[600] text-[#18181B] border-none"
+                  className="flex items-center justify-between px-6 py-5 hover:no-underline text-left text-[16px] font-[700] text-[#18181B] border-none w-full"
                 >
-                  {faq.question}
+                  <span className="flex-1 pr-24">{faq.question}</span>
+                  <div className="p-2 text-[#A1A1AA] group-data-[state=open]:rotate-180 transition-transform duration-200">
+                    <ChevronDown className="size-5" />
+                  </div>
                 </AccordionTrigger>
                 
-                <div className="flex items-center gap-1 shrink-0">
-                  <Link href={`/faq/${faq.id}`}>
+                <div className="absolute right-14 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                  <Link href={`/faq/${faq.id}`} onClick={(e) => e.stopPropagation()}>
                     <EditButton />
                   </Link>
                   <DeleteButton
@@ -90,15 +92,11 @@ export default function FAQPage() {
                       handleDelete(faq.id);
                     }}
                   />
-                  {/* Manually adding chevron that rotates based on state */}
-                  <div className="p-2 text-[#71717A] group-data-[state=open]:rotate-180 transition-transform duration-200">
-                    <ChevronDown className="size-4" />
-                  </div>
                 </div>
               </div>
 
-              <AccordionContent className="px-6 pb-6 text-[14px] leading-relaxed text-[#71717A] border-t border-gray-50">
-                <div className="pt-4">
+              <AccordionContent className="px-6 pb-6 text-[14px] leading-relaxed text-[#71717A] border-t border-[#E4E4E7]">
+                <div className="pt-5">
                   {faq.answer}
                 </div>
               </AccordionContent>

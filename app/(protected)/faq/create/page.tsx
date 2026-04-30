@@ -178,14 +178,14 @@ export default function FAQCreatePage() {
       </div>
 
       {/* Main Form Card */}
-      <div className="bg-white rounded-[12px] border border-[#E4E4E7] shadow-sm p-8 flex flex-col gap-10">
-        <div className="space-y-6">
+      <div className="bg-white rounded-[12px] border border-[#E4E4E7] shadow-sm p-6 flex flex-col gap-5">
+        <div className="space-y-5">
           <h2 className="text-[16px] font-[700] text-[#18181B]">기본 정보</h2>
           <div className="w-full h-[1px] bg-[#E4E4E7]" />
         </div>
 
         {/* Question Input */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <label className="text-[14px] font-[600] text-[#18181B]">
             질문 (제목) <span className="text-red-500">*</span>
           </label>
@@ -198,7 +198,7 @@ export default function FAQCreatePage() {
         </div>
 
         {/* Answer Editor */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <label className="text-[14px] font-[600] text-[#18181B]">답변 (내용)</label>
           <div className="border border-[#E4E4E7] rounded-[8px] overflow-hidden">
             {/* Toolbar */}
@@ -281,9 +281,9 @@ export default function FAQCreatePage() {
         </div>
 
         {/* Activation Switch */}
-        <div className="flex flex-col gap-3 pt-4">
+        <div className="flex flex-col gap-2">
           <label className="text-[14px] font-[700] text-[#18181B]">활성화</label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Switch checked={isActive} onCheckedChange={setIsActive} />
             <span className="text-[14px] text-[#71717A]">FAQ를 즉시 노출합니다</span>
           </div>
