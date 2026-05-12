@@ -1,11 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { useAdminAuth } from '@/providers/admin-auth-provider';
+import { ApiError } from '@/types/api';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const router = useRouter();
+  const { login } = useAdminAuth();
+  const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -13,13 +18,24 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await signIn('credentials', {
-      email,
-      password,
-      redirect: true,
-      callbackUrl: '/banner',
-    });
-    setIsLoading(false);
+    try {
+      // mustChangePassword 분기는 디자인 확정 후 재도입. 지금은 일괄 배너로 진입.
+      // const { mustChangePassword } = await login(loginId, password);
+      // if (mustChangePassword) {
+      //   router.replace('/change-password');
+      // } else {
+      //   router.replace('/banner');
+      // }
+      await login(loginId, password);
+      router.replace('/banner');
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.';
+      toast.error(message);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -37,9 +53,9 @@ export default function LoginPage() {
           <h1 style={styles.title}>어드민 로그인</h1>
 
           <form onSubmit={handleLogin} style={styles.form}>
-            {/* 이메일 */}
+            {/* 로그인 ID */}
             <div style={styles.fieldGroup}>
-              <label style={styles.label}>이메일</label>
+              <label style={styles.label}>아이디</label>
               <div style={styles.inputWrapper}>
                 <svg
                   style={styles.inputIcon}
@@ -49,16 +65,17 @@ export default function LoginPage() {
                   strokeWidth={1.5}
                   className="z-10"
                 >
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21c0-4.418 3.582-8 8-8s8 3.582 8 8" />
                 </svg>
                 <Input
-                  id="email"
+                  id="loginId"
                   type="text"
-                  placeholder="admin@tripflex.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin"
+                  value={loginId}
+                  onChange={(e) => setLoginId(e.target.value)}
                   className="pl-10 h-11 border-gray-200 bg-white text-gray-900"
+                  autoComplete="username"
                   required
                 />
               </div>

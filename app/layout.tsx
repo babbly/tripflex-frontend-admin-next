@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/sonner';
 import '@/css/styles.css';
 import '@/components/keenicons/assets/styles.css';
 import { Metadata } from 'next';
-import { AuthProvider } from '@/providers/auth-provider';
+import { AdminAuthProvider } from '@/providers/admin-auth-provider';
 import { I18nProvider } from '@/providers/i18n-provider';
 // import { ModulesProvider } from '@/providers/modules-provider';
 import { QueryProvider } from '@/providers/query-provider';
@@ -36,7 +36,7 @@ export default async function RootLayout({
         )}
       >
         <QueryProvider>
-          <AuthProvider>
+          <AdminAuthProvider>
             <SettingsProvider>
               <ThemeProvider>
                 <I18nProvider>
@@ -49,7 +49,7 @@ export default async function RootLayout({
                 </I18nProvider>
               </ThemeProvider>
             </SettingsProvider>
-          </AuthProvider>
+          </AdminAuthProvider>
         </QueryProvider>
       </body>
     </html>
