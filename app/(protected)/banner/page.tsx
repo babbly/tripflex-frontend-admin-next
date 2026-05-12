@@ -1,212 +1,300 @@
 'use client';
 
-import React, { useState } from 'react';
+// 배너 목록.
+// 서버 페이지네이션 / position(TOP/HOME/BOTTOM) 탭 / keyword + startDate/endDate 필터
+// 활성 토글: PATCH /banners/{id}, 삭제: DELETE /banners/{id}, 순서 변경: PATCH /banners/reorder
+//
+// 주의: 검색 keyword 입력은 디바운스 없이 페이지 1로 검색 버튼 없이 즉시 호출 — 추후 필요 시 디바운스 추가.
+
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { toast } from 'sonner';
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   useSortable,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Search, Plus, GripVertical, ChevronLeft, ChevronRight, Calendar, Trash2, Edit2 } from 'lucide-react';
-import { EditButton, DeleteButton } from '@/components/ui/action-buttons';
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Edit2,
+  GripVertical,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PageTitle } from '@/components/ui/page-title';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Image from 'next/image';
-import Link from 'next/link';
-import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AdminTableHead,
+  AdminTableHeaderRow,
+} from '@/components/ui/admin-table';
+import { bannerApi } from '@/lib/banner-api';
+import {
+  BANNER_POSITION_LABELS,
+  BANNER_POSITIONS,
+  BannerPosition,
+  BannerResponse,
+} from '@/types/banner';
+import { ApiError } from '@/types/api';
 
-interface Banner {
-  id: string;
-  image: string;
-  title: string;
-  description: string;
-  tag: string;
-  startDate: string;
-  endDate: string;
-  isActive: boolean;
+// 'ENDED' = 종료된 배너 탭 (백엔드 필터 명세 대기, 현재 placeholder)
+type BannerTab = BannerPosition | 'ENDED';
+const TABS: { id: BannerTab; label: string }[] = [
+  ...BANNER_POSITIONS.map((p) => ({ id: p, label: BANNER_POSITION_LABELS[p] })),
+  { id: 'ENDED', label: '종료된 배너' },
+];
+
+function formatDateRange(startAt?: string, endAt?: string) {
+  const fmt = (v?: string) => (v ? v.slice(0, 10) : '');
+  if (!startAt && !endAt) return '-';
+  return `${fmt(startAt)} ~ ${fmt(endAt)}`;
 }
 
-const SortableTableRow = ({ banner, onToggle, onDelete, onEdit }: { banner: Banner, onToggle: (id: string) => void, onDelete: (id: string) => void, onEdit: (id: string) => void }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: banner.id });
+type RowProps = {
+  banner: BannerResponse;
+  onToggle: (b: BannerResponse) => void;
+  onDelete: (b: BannerResponse) => void;
+  onEdit: (b: BannerResponse) => void;
+};
 
+function SortableTableRow({ banner, onToggle, onDelete, onEdit }: RowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: banner.id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
   return (
-    <tr ref={setNodeRef} style={style} className="border-b last:border-0 bg-white hover:bg-gray-50 group">
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className="border-b last:border-0 bg-white hover:bg-gray-50 group"
+    >
       <td className="p-4 w-[80px] text-center">
-        <button {...attributes} {...listeners} className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
           <GripVertical className="w-5 h-5" />
         </button>
       </td>
       <td className="p-4">
         <div className="w-24 h-16 bg-gray-200 rounded-md overflow-hidden relative">
-          <Image src={banner.image} alt={banner.title} fill className="object-cover" />
+          {banner.imageUrl ? (
+            <Image
+              src={banner.imageUrl}
+              alt={banner.title}
+              fill
+              className="object-cover"
+              sizes="96px"
+              unoptimized
+            />
+          ) : null}
         </div>
       </td>
       <td className="p-4">
         <div className="font-semibold text-gray-900">{banner.title}</div>
-        <div className="text-sm text-gray-500 mt-1">{banner.description}</div>
-      </td>
-      <td className="p-4">
-        <Badge 
-          variant="secondary" 
-          className={
-            banner.tag === '프로모션'
-              ? 'bg-[#eef1ff] text-[#1C2340] text-[11px] font-[600] leading-normal hover:bg-[#eef1ff]'
-              : 'bg-gray-100 text-gray-700 text-[11px] font-[600] leading-normal hover:bg-gray-100'
-          }
-        >
-          {banner.tag}
-        </Badge>
+        {banner.subtitle && (
+          <div className="text-sm text-gray-500 mt-1">{banner.subtitle}</div>
+        )}
       </td>
       <td className="p-4 text-gray-600 text-sm">
-        {banner.startDate} ~ {banner.endDate}
+        {formatDateRange(banner.startAt, banner.endAt)}
       </td>
       <td className="p-4">
         <div className="flex items-center">
-          <Switch checked={banner.isActive} onCheckedChange={() => onToggle(banner.id)} />
+          <Switch
+            checked={banner.active}
+            onCheckedChange={() => onToggle(banner)}
+          />
         </div>
       </td>
       <td className="p-4">
         <div className="flex items-center space-x-2">
-          <button onClick={() => onEdit(banner.id)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors">
+          <button
+            onClick={() => onEdit(banner)}
+            className="p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
+          >
             <Edit2 className="w-4 h-4" />
           </button>
-          <button onClick={() => onDelete(banner.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors">
+          <button
+            onClick={() => onDelete(banner)}
+            className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+          >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </td>
     </tr>
   );
-};
-
-const generateDummyData = (type: string, count: number): Banner[] => {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `${type}-${i + 1}`,
-    image: `https://picsum.photos/seed/${type}${i}/200/120`,
-    title: `${type === 'top' ? '상단' : type === 'middle' ? '중단' : '하단'} 배너 타이틀 ${i + 1}`,
-    description: `배너 상세 설명 문구입니다. #${i + 1}`,
-    tag: i % 2 === 0 ? '프로모션' : '가이드',
-    startDate: '2026-03-01',
-    endDate: '2026-03-31',
-    isActive: i % 3 !== 1,
-  }));
-};
+}
 
 export default function BannerPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'top' | 'middle' | 'bottom'>('top');
-  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+
+  const [activeTab, setActiveTab] = useState<BannerTab>('TOP');
+  const [page, setPage] = useState(0); // Spring Page: 0-base
   const [pageSize, setPageSize] = useState('10');
-  const ITEMS_PER_PAGE = parseInt(pageSize);
-
-  const [banners, setBanners] = useState({
-    top: generateDummyData('top', 25),
-    middle: generateDummyData('middle', 15),
-    bottom: generateDummyData('bottom', 12),
-  });
-
+  const [keyword, setKeyword] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const handleTabChange = (tabId: 'top' | 'middle' | 'bottom') => {
-    setActiveTab(tabId);
-    setPage(1);
+  const isEnded = activeTab === 'ENDED';
+  const size = parseInt(pageSize, 10);
+
+  const queryKey = useMemo(
+    () => ['banners', { activeTab, page, size, keyword, startDate, endDate }],
+    [activeTab, page, size, keyword, startDate, endDate],
+  );
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey,
+    enabled: !isEnded,
+    queryFn: () =>
+      bannerApi.list({
+        position: activeTab as BannerPosition,
+        page,
+        size,
+        keyword: keyword || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      }),
+  });
+
+  // 드래그 정렬을 즉시 반영하기 위한 로컬 오버라이드
+  const [localOrder, setLocalOrder] = useState<BannerResponse[] | null>(null);
+  useEffect(() => {
+    setLocalOrder(null);
+  }, [queryKey.join('|')]);
+
+  const banners = localOrder ?? data?.content ?? [];
+  const totalPages = data?.totalPages ?? 0;
+
+  const toggleMutation = useMutation({
+    mutationFn: (b: BannerResponse) =>
+      bannerApi.update(b.id, {
+        title: b.title,
+        imageUrl: b.imageUrl,
+        subtitle: b.subtitle,
+        imagePath: b.imagePath,
+        linkUrl: b.linkUrl,
+        position: b.position,
+        displayOrder: b.displayOrder,
+        startAt: b.startAt,
+        endAt: b.endAt,
+        active: !b.active,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : '상태 변경에 실패했습니다.');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => bannerApi.remove(id),
+    onSuccess: () => {
+      toast.success('삭제되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : '삭제에 실패했습니다.');
+    },
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: (items: { id: string; displayOrder: number }[]) =>
+      bannerApi.reorder(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : '순서 변경에 실패했습니다.');
+      setLocalOrder(null);
+    },
+  });
+
+  const handleTabChange = (next: BannerTab) => {
+    setActiveTab(next);
+    setPage(0);
+    setKeyword('');
     setStartDate('');
     setEndDate('');
-    // 새로고침 효과를 위해 데이터를 다시 생성합니다.
-    setBanners(prev => ({
-      ...prev,
-      [tabId]: generateDummyData(tabId, tabId === 'top' ? 25 : tabId === 'middle' ? 15 : 12)
-    }));
   };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setBanners((prev) => {
-        const currentBanners = prev[activeTab];
-        const oldIndex = currentBanners.findIndex((item) => item.id === active.id);
-        const newIndex = currentBanners.findIndex((item) => item.id === over.id);
-        return {
-          ...prev,
-          [activeTab]: arrayMove(currentBanners, oldIndex, newIndex),
-        };
-      });
-    }
+    if (!over || active.id === over.id) return;
+
+    const current = banners;
+    const oldIndex = current.findIndex((b) => b.id === active.id);
+    const newIndex = current.findIndex((b) => b.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const reordered = arrayMove(current, oldIndex, newIndex);
+    setLocalOrder(reordered);
+
+    const payload = reordered.map((b, idx) => ({ id: b.id, displayOrder: idx }));
+    reorderMutation.mutate(payload);
   };
 
-  const toggleStatus = (id: string) => {
-    setBanners((prev) => ({
-      ...prev,
-      [activeTab]: prev[activeTab].map((b) => (b.id === id ? { ...b, isActive: !b.isActive } : b)),
-    }));
+  const handleDelete = (b: BannerResponse) => {
+    if (!confirm(`"${b.title}" 배너를 삭제하시겠습니까?`)) return;
+    deleteMutation.mutate(b.id);
   };
-
-  const deleteBanner = (id: string) => {
-    if (confirm('이 배너를 삭제하시겠습니까?')) {
-      setBanners((prev) => ({
-        ...prev,
-        [activeTab]: prev[activeTab].filter((b) => b.id !== id),
-      }));
-    }
-  };
-
-  const filteredBanners = banners[activeTab].filter((banner) => {
-    if (!startDate || !endDate) return true;
-    // 날짜 비교 로직 (YYYY-MM-DD 형식 문자열 비교)
-    return banner.startDate >= startDate && banner.endDate <= endDate;
-  });
-
-  const currentBanners = filteredBanners;
-  const totalPages = Math.max(1, Math.ceil(currentBanners.length / ITEMS_PER_PAGE));
-  const paginatedBanners = currentBanners.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-  const tabs = [
-    { id: 'top', label: '상단배너' },
-    { id: 'middle', label: '중단배너' },
-    { id: 'bottom', label: '하단배너' },
-  ] as const;
 
   return (
     <div className="w-full flex flex-col gap-[24px]">
-      <PageTitle>홈 배너 관리 - {tabs.find(t => t.id === activeTab)?.label}</PageTitle>
+      <PageTitle>
+        홈 배너 관리 - {TABS.find((t) => t.id === activeTab)?.label}
+      </PageTitle>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200">
-        {tabs.map((tab) => (
+        {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => handleTabChange(tab.id)}
             className={`px-6 py-3 text-[14px] font-[600] transition-colors relative ${
-              activeTab === tab.id ? 'text-[#4186FF]' : 'text-gray-500 hover:text-gray-700'
+              activeTab === tab.id
+                ? 'text-[#4186FF]'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {tab.label}
@@ -217,50 +305,81 @@ export default function BannerPage() {
         ))}
       </div>
 
-      {/* Filters & Add Button */}
+      {/* Filters */}
       <div className="flex flex-wrap items-center justify-between gap-[12px]">
         <div className="flex flex-wrap items-center gap-[12px]">
           <div className="flex items-center w-[380px] h-[40px] px-[14px] py-[10px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
             <Search className="w-5 h-5 text-[#71717A] shrink-0" />
-            <input 
-              type="text" 
-              className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]" 
-              placeholder="배너 문구 검색" 
+            <input
+              type="text"
+              className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]"
+              placeholder="배너 문구 검색"
+              value={keyword}
+              onChange={(e) => {
+                setKeyword(e.target.value);
+                setPage(0);
+              }}
             />
           </div>
-          
+
           <div className="flex items-center gap-[8px]">
             <div className="flex items-center w-[160px] h-[40px] px-[12px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
               <Calendar className="w-4 h-4 text-[#71717A]" />
-              <input 
-                type="text" 
-                placeholder="시작 날짜" 
-                className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" 
+              <input
+                type="text"
+                placeholder="시작 날짜"
+                className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) {} }} 
-                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }} 
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setPage(0);
+                }}
+                onFocus={(e) => {
+                  e.target.type = 'date';
+                  try {
+                    e.target.showPicker();
+                  } catch {
+                    /* noop */
+                  }
+                }}
+                onBlur={(e) => {
+                  if (!e.target.value) e.target.type = 'text';
+                }}
                 max={endDate || undefined}
               />
             </div>
             <span className="text-gray-400">~</span>
             <div className="flex items-center w-[160px] h-[40px] px-[12px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
               <Calendar className="w-4 h-4 text-[#71717A]" />
-              <input 
-                type="text" 
-                placeholder="종료 날짜" 
-                className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]" 
+              <input
+                type="text"
+                placeholder="종료 날짜"
+                className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch (err) {} }} 
-                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }} 
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setPage(0);
+                }}
+                onFocus={(e) => {
+                  e.target.type = 'date';
+                  try {
+                    e.target.showPicker();
+                  } catch {
+                    /* noop */
+                  }
+                }}
+                onBlur={(e) => {
+                  if (!e.target.value) e.target.type = 'text';
+                }}
                 min={startDate || undefined}
               />
             </div>
           </div>
         </div>
 
-        <Link href="/banner/create">
+        <Link
+          href={`/banner/create?position=${isEnded ? 'TOP' : activeTab}`}
+        >
           <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
             <Plus className="w-4 h-4 mr-2" />
             배너 추가
@@ -268,12 +387,18 @@ export default function BannerPage() {
         </Link>
       </div>
 
-      {/* Table Section */}
+      {/* Table */}
       <div className="space-y-4">
         <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
           <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
             <span className="text-[13px] text-gray-500">페이지당</span>
-            <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+            <Select
+              value={pageSize}
+              onValueChange={(val) => {
+                setPageSize(val);
+                setPage(0);
+              }}
+            >
               <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
                 <SelectValue placeholder="10" />
               </SelectTrigger>
@@ -284,29 +409,65 @@ export default function BannerPage() {
               </SelectContent>
             </Select>
           </div>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <AdminTableHeaderRow>
-                    <AdminTableHead className="px-6 py-4 text-center w-[80px] whitespace-nowrap">순서</AdminTableHead>
+                    <AdminTableHead className="px-6 py-4 text-center w-[80px] whitespace-nowrap">
+                      순서
+                    </AdminTableHead>
                     <AdminTableHead className="px-6 py-4">이미지</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">배너 문구</AdminTableHead>
-                    <AdminTableHead className="px-6 py-4">태그</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">게시 기간</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">활성화</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">관리</AdminTableHead>
                   </AdminTableHeaderRow>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  <SortableContext items={paginatedBanners.map((b) => b.id)} strategy={verticalListSortingStrategy}>
-                    {paginatedBanners.map((banner) => (
+                  {isEnded && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
+                        종료된 배너 명세 대기 중입니다.
+                      </td>
+                    </tr>
+                  )}
+                  {!isEnded && isLoading && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
+                        불러오는 중...
+                      </td>
+                    </tr>
+                  )}
+                  {!isEnded && isError && !isLoading && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-red-500 text-sm">
+                        {error instanceof ApiError ? error.message : '목록을 불러오지 못했습니다.'}
+                      </td>
+                    </tr>
+                  )}
+                  {!isEnded && !isLoading && !isError && banners.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
+                        등록된 배너가 없습니다.
+                      </td>
+                    </tr>
+                  )}
+                  <SortableContext
+                    items={banners.map((b) => b.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {banners.map((banner) => (
                       <SortableTableRow
                         key={banner.id}
                         banner={banner}
-                        onToggle={toggleStatus}
-                        onDelete={deleteBanner}
-                        onEdit={(id) => router.push(`/banner/${id}`)}
+                        onToggle={(b) => toggleMutation.mutate(b)}
+                        onDelete={handleDelete}
+                        onEdit={(b) => router.push(`/banner/${b.id}`)}
                       />
                     ))}
                   </SortableContext>
@@ -316,37 +477,43 @@ export default function BannerPage() {
           </DndContext>
 
           {/* Pagination */}
-          <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
-            <Button
-              variant="outline"
-              size="icon"
-              className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+          {totalPages > 0 && (
+            <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
               <Button
-                key={p}
-                variant={p === page ? 'default' : 'outline'}
+                variant="outline"
                 size="icon"
-                className={`w-8 h-8 p-0 ${p === page ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-                onClick={() => setPage(p)}
+                className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
               >
-                {p}
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-            ))}
-            <Button
-              variant="outline"
-              size="icon"
-              className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
+              {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
+                <Button
+                  key={p}
+                  variant={p === page ? 'primary' : 'outline'}
+                  size="icon"
+                  className={`w-8 h-8 p-0 ${
+                    p === page
+                      ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent shadow-sm'
+                      : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setPage(p)}
+                >
+                  {p + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
