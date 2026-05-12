@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard,
   Image as ImageIcon,
   MessageSquare,
   HelpCircle,
@@ -49,7 +48,6 @@ const CustomFileImageIcon = ({ className }: { className?: string }) => (
 );
 
 const MENU_ITEMS = [
-  { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
   { name: '홈 배너 관리', href: '/banner', icon: ImageIcon },
   { name: '이미지 분석 목록', href: '/image-analysis', icon: CustomFileImageIcon },
   { name: '유저 제안 관리', href: '/suggestions', icon: MessageSquare },
