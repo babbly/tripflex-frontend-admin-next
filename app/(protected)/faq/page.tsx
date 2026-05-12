@@ -1,8 +1,21 @@
 'use client';
 
+// FAQ 목록.
+// api.json: GET /api/admin/faqs — page/size/locale/category/activeOnly 필터
+// answer는 rich HTML이라 accordion 내부에서 dangerouslySetInnerHTML 로 렌더.
+
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Plus, ChevronDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Search,
+} from 'lucide-react';
 import { PageTitle } from '@/components/ui/page-title';
 import { Button } from '@/components/ui/button';
 import { EditButton, DeleteButton } from '@/components/ui/action-buttons';
@@ -12,38 +25,62 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-
-interface FAQ {
-  id: string;
-  question: string;
-  answer: string;
-}
-
-const dummyFAQs: FAQ[] = [
-  {
-    id: '1',
-    question: '메뉴판을 어떻게 촬영하나요?',
-    answer: '앱 메인 화면에서 카메라 아이콘을 탭하거나 갤러리에서 사진을 선택하세요. 메뉴판이 선명하게 보이도록 촬영하면 더 정확한 번역 결과를 얻을 수 있습니다. 최대 5장까지 업로드 가능합니다.',
-  },
-  {
-    id: '2',
-    question: '지원하는 언어는 어떤 것이 있나요?',
-    answer: '현재 한국어, 영어, 일본어, 중국어 등 전 세계 주요 언어를 지원하고 있습니다. 지속적으로 지원 언어를 확대하고 있습니다.',
-  },
-  {
-    id: '3',
-    question: '팁 계산은 어떻게 이루어지나요?',
-    answer: '메뉴 가격을 입력하면 해당 국가의 일반적인 팁 비율을 바탕으로 권장 팁 금액을 계산해 드립니다. 사용자가 직접 팁 비율을 조정할 수도 있습니다.',
-  },
-];
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { faqApi } from '@/lib/faq-api';
+import {
+  FAQ_LOCALES,
+  FAQ_LOCALE_LABELS,
+  FaqResponse,
+} from '@/types/faq';
+import { ApiError } from '@/types/api';
 
 export default function FAQPage() {
-  const [faqs, setFaqs] = useState<FAQ[]>(dummyFAQs);
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const handleDelete = (id: string) => {
-    if (confirm('이 FAQ를 삭제하시겠습니까?')) {
-      setFaqs(faqs.filter((faq) => faq.id !== id));
-    }
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState('10');
+  const [locale, setLocale] = useState<string>('');
+  const [category, setCategory] = useState('');
+  const [activeOnly, setActiveOnly] = useState(false);
+
+  const size = parseInt(pageSize, 10);
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['faqs', { page, size, locale, category, activeOnly }],
+    queryFn: () =>
+      faqApi.list({
+        page,
+        size,
+        locale: locale || undefined,
+        category: category || undefined,
+        activeOnly: activeOnly || undefined,
+      }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => faqApi.remove(id),
+    onSuccess: () => {
+      toast.success('삭제되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['faqs'] });
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : '삭제에 실패했습니다.');
+    },
+  });
+
+  const faqs = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 0;
+
+  const handleDelete = (faq: FaqResponse) => {
+    if (!confirm(`"${faq.question}" FAQ를 삭제하시겠습니까?`)) return;
+    deleteMutation.mutate(faq.id);
   };
 
   return (
@@ -58,52 +95,208 @@ export default function FAQPage() {
         </Link>
       </div>
 
-      <div className="w-full">
-        <Accordion 
-          type="single" 
-          collapsible 
-          // @ts-ignore - 'none' is a valid variant in trigger but not in Accordion props type
-          indicator="none"
-          className="w-full space-y-4"
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-[12px]">
+        <Select
+          value={locale || 'ALL'}
+          onValueChange={(v) => {
+            setLocale(v === 'ALL' ? '' : v);
+            setPage(0);
+          }}
         >
-          {faqs.map((faq) => (
-            <AccordionItem
-              key={faq.id}
-              value={faq.id}
-              className="group bg-white border border-[#E4E4E7] rounded-[12px] overflow-hidden shadow-sm transition-all px-0"
-            >
-              <div className="relative">
-                <AccordionTrigger 
-                  className="flex items-center justify-between px-6 py-5 hover:no-underline text-left text-[16px] font-[700] text-[#18181B] border-none w-full"
-                >
-                  <span className="flex-1 pr-24">{faq.question}</span>
-                  <div className="p-2 text-[#A1A1AA] group-data-[state=open]:rotate-180 transition-transform duration-200">
-                    <ChevronDown className="size-5" />
-                  </div>
-                </AccordionTrigger>
-                
-                <div className="absolute right-14 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
-                  <Link href={`/faq/${faq.id}`} onClick={(e) => e.stopPropagation()}>
-                    <EditButton />
-                  </Link>
-                  <DeleteButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(faq.id);
-                    }}
-                  />
-                </div>
-              </div>
+          <SelectTrigger className="w-[140px] h-10 text-sm">
+            <SelectValue placeholder="언어 전체" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">언어 전체</SelectItem>
+            {FAQ_LOCALES.map((l) => (
+              <SelectItem key={l} value={l}>
+                {FAQ_LOCALE_LABELS[l]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-              <AccordionContent className="px-6 pb-6 text-[14px] leading-relaxed text-[#71717A] border-t border-[#E4E4E7]">
-                <div className="pt-5">
-                  {faq.answer}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        <div className="flex items-center w-[260px] h-[40px] px-[14px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
+          <Search className="w-4 h-4 text-[#71717A] shrink-0" />
+          <input
+            type="text"
+            className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]"
+            placeholder="카테고리 필터"
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              setPage(0);
+            }}
+          />
+        </div>
+
+        <Select
+          value={activeOnly ? 'ACTIVE' : 'ALL'}
+          onValueChange={(v) => {
+            setActiveOnly(v === 'ACTIVE');
+            setPage(0);
+          }}
+        >
+          <SelectTrigger className="w-[120px] h-10 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">전체</SelectItem>
+            <SelectItem value="ACTIVE">활성</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-[13px] text-gray-500">페이지당</span>
+          <Select
+            value={pageSize}
+            onValueChange={(v) => {
+              setPageSize(v);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-[80px] h-10 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      <div className="w-full">
+        {isLoading && (
+          <div className="bg-white border border-[#E4E4E7] rounded-[12px] p-8 text-center text-sm text-gray-500">
+            불러오는 중...
+          </div>
+        )}
+        {isError && !isLoading && (
+          <div className="bg-white border border-[#E4E4E7] rounded-[12px] p-8 text-center text-sm text-red-500">
+            {error instanceof ApiError ? error.message : '목록을 불러오지 못했습니다.'}
+          </div>
+        )}
+        {!isLoading && !isError && faqs.length === 0 && (
+          <div className="bg-white border border-[#E4E4E7] rounded-[12px] p-8 text-center text-sm text-gray-500">
+            등록된 FAQ가 없습니다.
+          </div>
+        )}
+
+        {!isLoading && !isError && faqs.length > 0 && (
+          <Accordion
+            type="single"
+            collapsible
+            // @ts-ignore - 'none' is a valid variant in trigger but not in Accordion props type
+            indicator="none"
+            className="w-full space-y-4"
+          >
+            {faqs.map((faq) => (
+              <AccordionItem
+                key={faq.id}
+                value={faq.id}
+                className="group bg-white border border-[#E4E4E7] rounded-[12px] overflow-hidden shadow-sm transition-all px-0"
+              >
+                <div className="relative">
+                  <AccordionTrigger className="flex items-center justify-between px-6 py-5 hover:no-underline text-left text-[16px] font-[700] text-[#18181B] border-none w-full">
+                    <div className="flex items-center gap-3 flex-1 pr-24 min-w-0">
+                      <span className="shrink-0 inline-flex items-center text-[11px] font-[600] px-2 py-0.5 rounded bg-[#EEF1FF] text-[#4186FF]">
+                        {faq.category}
+                      </span>
+                      <span className="shrink-0 inline-flex items-center text-[11px] font-[500] text-gray-500 uppercase">
+                        {faq.locale}
+                      </span>
+                      {!faq.active && (
+                        <span className="shrink-0 inline-flex items-center text-[11px] font-[600] px-2 py-0.5 rounded bg-gray-100 text-gray-500">
+                          비활성
+                        </span>
+                      )}
+                      <span className="truncate">{faq.question}</span>
+                    </div>
+                    <div className="p-2 text-[#A1A1AA] group-data-[state=open]:rotate-180 transition-transform duration-200">
+                      <ChevronDown className="size-5" />
+                    </div>
+                  </AccordionTrigger>
+
+                  <div className="absolute right-14 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/faq/${faq.id}`);
+                      }}
+                      className="block"
+                    >
+                      <EditButton />
+                    </button>
+                    <DeleteButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(faq);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <AccordionContent className="px-6 pb-6 text-[14px] leading-relaxed text-[#71717A] border-t border-[#E4E4E7]">
+                  <div
+                    className="pt-5 faq-answer"
+                    dangerouslySetInnerHTML={{ __html: faq.answer }}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
+      </div>
+
+      {totalPages > 0 && (
+        <div className="flex justify-end items-center space-x-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
+            <Button
+              key={p}
+              variant={p === page ? 'primary' : 'outline'}
+              size="icon"
+              className={`w-8 h-8 p-0 ${p === page
+                  ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent shadow-sm'
+                  : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`}
+              onClick={() => setPage(p)}
+            >
+              {p + 1}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            size="icon"
+            className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      <style jsx global>{`
+        .faq-answer h1 { font-size: 2em; font-weight: bold; margin-bottom: 0.5em; }
+        .faq-answer h2 { font-size: 1.5em; font-weight: bold; margin-bottom: 0.5em; }
+        .faq-answer h3 { font-size: 1.25em; font-weight: bold; margin-bottom: 0.5em; }
+        .faq-answer p { margin-bottom: 1em; }
+        .faq-answer blockquote { border-left: 4px solid #ccc; padding-left: 1em; color: #666; margin: 1em 0; }
+        .faq-answer img { max-width: 100%; height: auto; }
+      `}</style>
     </div>
   );
 }
