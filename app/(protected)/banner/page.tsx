@@ -161,32 +161,42 @@ export default function BannerPage() {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<BannerTab>('TOP');
-  const [page, setPage] = useState(0); // Spring Page: 0-base
-  const [pageSize, setPageSize] = useState('10');
   const [keyword, setKeyword] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
   const isEnded = activeTab === 'ENDED';
-  const size = parseInt(pageSize, 10);
+  // 페이지네이션 제거 — 전체 로드해서 순서 변경 등에 사용
+  const FETCH_SIZE = 500;
 
   const queryKey = useMemo(
-    () => ['banners', { activeTab, page, size, keyword, startDate, endDate }],
-    [activeTab, page, size, keyword, startDate, endDate],
+    () => ['banners', { activeTab, keyword, startDate, endDate }],
+    [activeTab, keyword, startDate, endDate],
   );
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey,
-    enabled: !isEnded,
     queryFn: () =>
-      bannerApi.list({
-        position: activeTab as BannerPosition,
-        page,
-        size,
-        keyword: keyword || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-      }),
+      bannerApi.list(
+        isEnded
+          ? {
+              // 종료된 배너: 백엔드가 active=false + endAt<now 필터 + endAt DESC 정렬 처리
+              page: 0,
+              size: FETCH_SIZE,
+              expiredOnly: true,
+              keyword: keyword || undefined,
+              startDate: startDate || undefined,
+              endDate: endDate || undefined,
+            }
+          : {
+              position: activeTab as BannerPosition,
+              page: 0,
+              size: FETCH_SIZE,
+              keyword: keyword || undefined,
+              startDate: startDate || undefined,
+              endDate: endDate || undefined,
+            },
+      ),
   });
 
   // 드래그 정렬을 즉시 반영하기 위한 로컬 오버라이드
@@ -245,7 +255,6 @@ export default function BannerPage() {
 
   const handleTabChange = (next: BannerTab) => {
     setActiveTab(next);
-    setPage(0);
     setKeyword('');
     setStartDate('');
     setEndDate('');
@@ -259,6 +268,8 @@ export default function BannerPage() {
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
+    // 종료된 배너 탭에서는 순서 변경 비활성화 — 백엔드가 endAt DESC 고정 정렬
+    if (isEnded) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -315,10 +326,7 @@ export default function BannerPage() {
               className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]"
               placeholder="배너 문구 검색"
               value={keyword}
-              onChange={(e) => {
-                setKeyword(e.target.value);
-                setPage(0);
-              }}
+              onChange={(e) => setKeyword(e.target.value)}
             />
           </div>
 
@@ -330,10 +338,7 @@ export default function BannerPage() {
                 placeholder="시작 날짜"
                 className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]"
                 value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setPage(0);
-                }}
+                onChange={(e) => setStartDate(e.target.value)}
                 onFocus={(e) => {
                   e.target.type = 'date';
                   try {
@@ -356,10 +361,7 @@ export default function BannerPage() {
                 placeholder="종료 날짜"
                 className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A]"
                 value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setPage(0);
-                }}
+                onChange={(e) => setEndDate(e.target.value)}
                 onFocus={(e) => {
                   e.target.type = 'date';
                   try {
@@ -390,25 +392,6 @@ export default function BannerPage() {
       {/* Table */}
       <div className="space-y-4">
         <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
-          <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
-            <span className="text-[13px] text-gray-500">페이지당</span>
-            <Select
-              value={pageSize}
-              onValueChange={(val) => {
-                setPageSize(val);
-                setPage(0);
-              }}
-            >
-              <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
-                <SelectValue placeholder="10" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -429,31 +412,26 @@ export default function BannerPage() {
                   </AdminTableHeaderRow>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {isEnded && (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
-                        종료된 배너 명세 대기 중입니다.
-                      </td>
-                    </tr>
-                  )}
-                  {!isEnded && isLoading && (
+                  {isLoading && (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
                         불러오는 중...
                       </td>
                     </tr>
                   )}
-                  {!isEnded && isError && !isLoading && (
+                  {isError && !isLoading && (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-red-500 text-sm">
                         {error instanceof ApiError ? error.message : '목록을 불러오지 못했습니다.'}
                       </td>
                     </tr>
                   )}
-                  {!isEnded && !isLoading && !isError && banners.length === 0 && (
+                  {!isLoading && !isError && banners.length === 0 && (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
-                        등록된 배너가 없습니다.
+                        {isEnded
+                          ? '종료된 배너가 없습니다.'
+                          : '등록된 배너가 없습니다.'}
                       </td>
                     </tr>
                   )}
@@ -477,7 +455,8 @@ export default function BannerPage() {
           </DndContext>
 
           {/* Pagination */}
-          {totalPages > 0 && (
+          {/* 페이지네이션 — 순서 변경 기능 적용 후 다시 살릴 예정. */}
+          {/* {totalPages > 0 && (
             <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
               <Button
                 variant="outline"
@@ -513,7 +492,7 @@ export default function BannerPage() {
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
