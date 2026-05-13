@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { faqApi } from '@/lib/faq-api';
 import {
   FAQ_LOCALES,
@@ -78,10 +79,7 @@ export default function FAQPage() {
   const faqs = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
-  const handleDelete = (faq: FaqResponse) => {
-    if (!confirm(`"${faq.question}" FAQ를 삭제하시겠습니까?`)) return;
-    deleteMutation.mutate(faq.id);
-  };
+  const [deleteTarget, setDeleteTarget] = useState<FaqResponse | null>(null);
 
   return (
     <div className="w-full flex flex-col gap-[24px]">
@@ -234,7 +232,7 @@ export default function FAQPage() {
                     <DeleteButton
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(faq);
+                        setDeleteTarget(faq);
                       }}
                     />
                   </div>
@@ -288,6 +286,21 @@ export default function FAQPage() {
           </Button>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="FAQ를 삭제하시겠어요?"
+        description="삭제 후에는 복구할 수 없습니다."
+        variant="double"
+        confirmText="삭제"
+        cancelText="취소"
+        confirmColor="red"
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
 
       <style jsx global>{`
         .faq-answer h1 { font-size: 2em; font-weight: bold; margin-bottom: 0.5em; }
