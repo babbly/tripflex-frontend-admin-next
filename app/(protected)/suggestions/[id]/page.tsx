@@ -1,97 +1,109 @@
 'use client';
 
+// 유저 제안 상세 — api.json
+// - GET /api/admin/suggestions/{id}
+// - PATCH .../review → 처리 상태 변경 (REVIEWED/CLOSED) + adminNote
+// - POST .../comments → 담당자 의견 추가
+// - PATCH .../comments/{commentId}/confirm → 댓글 확인 토글
+
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { ArrowLeft, ImageIcon } from 'lucide-react';
 import { PageTitle } from '@/components/ui/page-title';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Download, Expand, ImageIcon } from 'lucide-react';
-import Link from 'next/link';
+import { suggestionApi, suggestionCategoryApi } from '@/lib/suggestion-api';
+import {
+  SUGGESTION_STATUS_LABELS,
+  SuggestionStatus,
+} from '@/types/suggestion';
+import { ApiError } from '@/types/api';
 
-const ScanIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" className={className}>
-    <path d="M2 4.66667V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H4.66667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M11.3334 2H12.6667C13.0203 2 13.3595 2.14048 13.6095 2.39052C13.8596 2.64057 14 2.97971 14 3.33333V4.66667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M14 11.332V12.6654C14 13.019 13.8596 13.3581 13.6095 13.6082C13.3595 13.8582 13.0203 13.9987 12.6667 13.9987H11.3334" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M4.66667 13.9987H3.33333C2.97971 13.9987 2.64057 13.8582 2.39052 13.6082C2.14048 13.3581 2 13.019 2 12.6654V11.332" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const ScanPlaceholderIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" className={className}>
-    <path d="M6 14V10C6 8.93913 6.42143 7.92172 7.17157 7.17157C7.92172 6.42143 8.93913 6 10 6H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M34 6H38C39.0609 6 40.0783 6.42143 40.8284 7.17157C41.5786 7.92172 42 8.93913 42 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M42 34V38C42 39.0609 41.5786 40.0783 40.8284 40.8284C40.0783 41.5786 39.0609 42 38 42H34" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M14 42H10C8.93913 42 7.92172 41.5786 7.17157 40.8284C6.42143 40.0783 6 39.0609 6 38V34" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const CustomDownloadIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className}>
-    <path d="M19.75 14C20.1642 14 20.5 14.3358 20.5 14.75V18.083C20.5 18.7239 20.2452 19.3388 19.792 19.792C19.3388 20.2452 18.7239 20.5 18.083 20.5H6.41699C5.77605 20.5 5.16122 20.2452 4.70801 19.792C4.31146 19.3954 4.06666 18.8755 4.01172 18.3223L4 18.083V14.75C4 14.3358 4.33579 14 4.75 14C5.16421 14 5.5 14.3358 5.5 14.75V18.083L5.50488 18.1738C5.52571 18.3837 5.61812 18.581 5.76855 18.7314C5.94046 18.9034 6.17388 19 6.41699 19H18.083C18.3261 19 18.5595 18.9034 18.7314 18.7314C18.9034 18.5595 19 18.3261 19 18.083V14.75C19 14.3358 19.3358 14 19.75 14Z" fill="currentColor"/>
-    <path d="M12.25 4C12.6642 4 13 4.33579 13 4.75V12.9375L15.8857 10.0527C16.1785 9.76001 16.6534 9.76034 16.9463 10.0527C17.2392 10.3456 17.2392 10.8204 16.9463 11.1133L12.7803 15.2803C12.7105 15.3501 12.6305 15.403 12.5449 15.4395C12.5327 15.4447 12.5193 15.4466 12.5068 15.4512C12.4745 15.4629 12.4425 15.4743 12.4092 15.4814C12.372 15.4895 12.334 15.4948 12.2949 15.4971C12.2887 15.4974 12.2826 15.4978 12.2764 15.498C12.2676 15.4984 12.2588 15.5 12.25 15.5C12.2179 15.5 12.1863 15.4971 12.1553 15.4932C12.1513 15.4927 12.1475 15.4918 12.1436 15.4912C12.1162 15.4873 12.0898 15.4804 12.0635 15.4736C12.0387 15.4673 12.0143 15.4601 11.9902 15.4512C11.966 15.4422 11.9429 15.4313 11.9199 15.4199C11.9024 15.4113 11.8851 15.4026 11.8682 15.3926C11.8451 15.3788 11.8232 15.3637 11.8018 15.3477C11.7938 15.3417 11.7841 15.3374 11.7764 15.3311L11.7197 15.2803L7.55273 11.1133L7.50098 11.0566C7.26098 10.7621 7.27825 10.3272 7.55273 10.0527C7.82723 9.77824 8.26207 9.76098 8.55664 10.001L8.61328 10.0527L11.5 12.9395V4.75C11.5 4.33579 11.8358 4 12.25 4Z" fill="currentColor"/>
-  </svg>
-);
+function formatDateTime(iso?: string) {
+  if (!iso) return '-';
+  return iso.replace('T', ' ').slice(0, 16);
+}
 
 export default function SuggestionDetailPage() {
-  const [detailData] = useState({
-    id: '1',
-    deviceId: 'DEV-20483A',
-    tag: '번역',
-    content: '메뉴판 번역 결과가 일부 잘못되었습니다',
-    suggestionDate: '2026-03-19 14:32',
-    analyzedImages: [1, 2, 3, 4, 5],
-    originalImages: [1, 2, 3, 4, 5],
+  const { id } = useParams();
+  const suggestionId = id as string;
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['suggestion', suggestionId],
+    queryFn: () => suggestionApi.detail(suggestionId),
+    enabled: !!suggestionId,
   });
 
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      author: '유명호',
-      date: '2026-03-19 14:32',
-      status: '확인완료',
-      content: '이미지가 올바릅니다',
-    },
-    {
-      id: 2,
-      author: '유명호',
-      date: '2026-03-20 14:32',
-      status: '미확인',
-      content: '이미지가 올바릅니다',
-    },
-    {
-      id: 3,
-      author: '유명호',
-      date: '2026-03-21 14:32',
-      status: '미확인',
-      content: '이미지가 올바릅니다',
-    },
-  ]);
+  // 카테고리명 매핑용
+  const { data: catData } = useQuery({
+    queryKey: ['suggestion-categories-all'],
+    queryFn: () =>
+      suggestionCategoryApi.list({ page: 0, size: 500, activeOnly: false }),
+  });
+  const categories = catData?.content ?? [];
 
   const [newComment, setNewComment] = useState('');
+  const [adminNote, setAdminNote] = useState('');
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    const comment = {
-      id: Date.now(),
-      author: '유명호',
-      date: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      status: '미확인',
-      content: newComment,
-    };
-    setComments([...comments, comment]);
-    setNewComment('');
-  };
+  const reviewMutation = useMutation({
+    mutationFn: (status: 'REVIEWED' | 'CLOSED') =>
+      suggestionApi.review(suggestionId, {
+        status,
+        adminNote: adminNote.trim() || undefined,
+      }),
+    onSuccess: () => {
+      toast.success('처리되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['suggestion', suggestionId] });
+      queryClient.invalidateQueries({ queryKey: ['suggestions'] });
+    },
+    onError: (e) =>
+      toast.error(e instanceof ApiError ? e.message : '처리에 실패했습니다.'),
+  });
 
-  const handleToggleCommentStatus = (id: number) => {
-    setComments((prev) =>
-      prev.map((comment) =>
-        comment.id === id && comment.status === '미확인'
-          ? { ...comment, status: '확인완료' }
-          : comment
-      )
+  const addCommentMutation = useMutation({
+    mutationFn: (content: string) =>
+      suggestionApi.addComment(suggestionId, { content }),
+    onSuccess: () => {
+      setNewComment('');
+      queryClient.invalidateQueries({ queryKey: ['suggestion', suggestionId] });
+    },
+    onError: (e) =>
+      toast.error(e instanceof ApiError ? e.message : '댓글 작성 실패'),
+  });
+
+  const toggleConfirmMutation = useMutation({
+    mutationFn: (commentId: string) =>
+      suggestionApi.toggleCommentConfirm(suggestionId, commentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suggestion', suggestionId] });
+    },
+    onError: (e) =>
+      toast.error(e instanceof ApiError ? e.message : '상태 변경 실패'),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="w-full p-12 text-center text-sm text-gray-500">불러오는 중...</div>
     );
-  };
+  }
+  if (isError || !data) {
+    return (
+      <div className="w-full p-12 text-center text-sm text-red-500">
+        {error instanceof ApiError ? error.message : '제안을 불러오지 못했습니다.'}
+      </div>
+    );
+  }
+
+  const cat = data.categoryCode
+    ? categories.find((c) => c.code === data.categoryCode)
+    : categories.find((c) => c.id === data.categoryId);
+  const statusKey = (data.status as SuggestionStatus) || 'PENDING';
+  const imageUrls = data.imageUrls ?? [];
+  const isClosed = statusKey === 'CLOSED' || statusKey === 'REVIEWED';
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -99,74 +111,146 @@ export default function SuggestionDetailPage() {
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <Link href="/suggestions">
-            <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-gray-100 rounded-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 hover:bg-gray-100 rounded-full"
+            >
               <ArrowLeft className="w-5 h-5 text-gray-800" />
             </Button>
           </Link>
           <PageTitle>유저 제안 상세</PageTitle>
         </div>
+
+        {/* 처리 상태 액션 */}
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className={`font-semibold text-[12px] ${
+              statusKey === 'PENDING'
+                ? 'bg-[#FEF3C7] text-[#B45309] hover:bg-[#FEF3C7]'
+                : statusKey === 'REVIEWED'
+                  ? 'bg-[#D1FAE5] text-[#10B981] hover:bg-[#D1FAE5]'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-100'
+            }`}
+          >
+            {SUGGESTION_STATUS_LABELS[statusKey] || data.status}
+          </Badge>
+          {statusKey === 'PENDING' && (
+            <>
+              <Button
+                onClick={() => reviewMutation.mutate('REVIEWED')}
+                disabled={reviewMutation.isPending}
+                className="bg-[#4186FF] hover:bg-blue-600 text-white text-[13px] font-[600] h-9 px-4"
+              >
+                처리 완료
+              </Button>
+              <Button
+                onClick={() => reviewMutation.mutate('CLOSED')}
+                disabled={reviewMutation.isPending}
+                variant="outline"
+                className="text-[13px] font-[600] h-9 px-4 border-gray-200"
+              >
+                종료
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Main Info Card */}
       <div className="bg-white rounded-lg border border-gray-200 p-8 flex flex-col space-y-8 relative">
-        {/* Action Buttons at Top Right */}
-        <div className="absolute top-8 right-8 flex items-center space-x-3">
-          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-6">
-            <Download className="w-4 h-4 mr-2" />
-            전체 JSON 다운로드
-          </Button>
-          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-6">
-            <Download className="w-4 h-4 mr-2" />
-            전체 IMAGE 다운로드
-          </Button>
-        </div>
-
         <div className="flex flex-col space-y-6 max-w-[60%]">
           <div className="flex space-x-12">
             <div>
               <div className="text-[12px] text-gray-400 font-medium mb-1.5">디바이스 ID</div>
-              <div className="text-[15px] font-bold text-gray-900">{detailData.deviceId}</div>
+              <div className="text-[15px] font-bold text-gray-900">
+                {data.deviceId || '-'}
+              </div>
             </div>
             <div>
               <div className="text-[12px] text-gray-400 font-medium mb-1.5">제안 일시</div>
-              <div className="text-[15px] font-bold text-gray-900">{detailData.suggestionDate}</div>
+              <div className="text-[15px] font-bold text-gray-900">
+                {formatDateTime(data.insDttm)}
+              </div>
             </div>
+            {data.contactEmail && (
+              <div>
+                <div className="text-[12px] text-gray-400 font-medium mb-1.5">연락처</div>
+                <div className="text-[15px] font-bold text-gray-900">
+                  {data.contactEmail}
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
-            <div className="text-[12px] text-gray-400 font-medium mb-1.5">태그</div>
+            <div className="text-[12px] text-gray-400 font-medium mb-1.5">카테고리</div>
             <Badge className="bg-[#EEF1FF] text-[#4186FF] text-[11px] font-[600] border-none shadow-none px-3 py-1">
-              {detailData.tag}
+              {data.categoryName || cat?.shortName || cat?.fullName || '-'}
             </Badge>
           </div>
 
           <div>
             <div className="text-[12px] text-gray-400 font-medium mb-1.5">상세 내용</div>
-            <div className="text-[14px] text-gray-900 leading-relaxed">{detailData.content}</div>
+            <div className="text-[14px] text-gray-900 leading-relaxed whitespace-pre-wrap">
+              {data.content}
+            </div>
           </div>
+
+          {data.adminNote && (
+            <div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5">처리 메모</div>
+              <div className="text-[14px] text-gray-700 leading-relaxed bg-[#F8F9FB] rounded-lg p-3">
+                {data.adminNote}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* 처리 메모 입력 (PENDING일 때만) */}
+        {!isClosed && (
+          <div>
+            <div className="text-[12px] text-gray-400 font-medium mb-1.5">
+              처리 메모 (선택)
+            </div>
+            <textarea
+              value={adminNote}
+              onChange={(e) => setAdminNote(e.target.value)}
+              placeholder="처리 메모를 입력하시면 위의 처리 버튼과 함께 저장됩니다."
+              className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[60px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none"
+            />
+          </div>
+        )}
 
         {/* Comments Section */}
         <div className="space-y-4">
           <div className="text-[12px] text-gray-400 font-medium">담당자 의견</div>
           <div className="space-y-3">
-            {comments.map((comment) => (
+            {(data.comments ?? []).length === 0 && (
+              <div className="text-[13px] text-gray-400">아직 작성된 의견이 없습니다.</div>
+            )}
+            {(data.comments ?? []).map((comment) => (
               <div key={comment.id} className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-semibold text-gray-600">{comment.author}</span>
-                  <span className="text-[12px] text-gray-400">{comment.date}</span>
-                  <Badge 
-                    onClick={() => handleToggleCommentStatus(comment.id)}
-                    className={`${
-                      comment.status === '확인완료' 
-                        ? 'bg-[#EEF1FF] text-[#4186FF] cursor-default opacity-80' 
-                        : 'bg-gray-100 text-gray-500 cursor-pointer hover:bg-gray-200 transition-colors'
-                    } text-[10px] font-[600] border-none shadow-none px-2 py-0.5`}
+                  <span className="text-[13px] font-semibold text-gray-600">
+                    {comment.authorName || '-'}
+                  </span>
+                  <span className="text-[12px] text-gray-400">
+                    {formatDateTime(comment.insDttm)}
+                  </span>
+                  <Badge
+                    onClick={() => toggleConfirmMutation.mutate(comment.id)}
+                    className={`cursor-pointer text-[10px] font-[600] border-none shadow-none px-2 py-0.5 ${
+                      comment.confirmed
+                        ? 'bg-[#EEF1FF] text-[#4186FF] hover:bg-[#E0EFFF]'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
                   >
-                    {comment.status}
+                    {comment.confirmed ? '확인완료' : '미확인'}
                   </Badge>
                 </div>
-                <div className="bg-[#F8F9FB] rounded-lg p-3 text-[13px] text-gray-600">
+                <div className="bg-[#F8F9FB] rounded-lg p-3 text-[13px] text-gray-600 whitespace-pre-wrap">
                   {comment.content}
                 </div>
               </div>
@@ -174,70 +258,53 @@ export default function SuggestionDetailPage() {
           </div>
 
           <div className="pt-2 flex flex-col space-y-3">
-            <textarea 
+            <textarea
               className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[50px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none"
               placeholder="내용을 입력해주세요"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
             />
             <div className="flex justify-end">
-              <Button 
-                onClick={handleAddComment}
+              <Button
+                onClick={() => {
+                  const c = newComment.trim();
+                  if (!c) return;
+                  addCommentMutation.mutate(c);
+                }}
+                disabled={addCommentMutation.isPending || !newComment.trim()}
                 className="bg-[#4186FF] hover:bg-blue-600 text-white text-[13px] font-[600] h-9 px-6 rounded-md shadow-sm"
               >
-                작성
+                {addCommentMutation.isPending ? '작성 중...' : '작성'}
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Analyzed Images Section */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-        <div className="flex items-center space-x-2 mb-6">
-          <Expand className="w-5 h-5 text-[#4186FF]" />
-          <h2 className="text-[16px] font-[700] text-gray-900">분석 이미지</h2>
-        </div>
-        <div className="grid grid-cols-5 gap-4">
-          {detailData.analyzedImages.map((item, index) => (
-            <div key={`analyzed-${index}`} className="flex flex-col space-y-3">
-              <div className="aspect-[4/3] bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF]">
-                <ScanPlaceholderIcon className="w-12 h-12 text-[#4186FF] opacity-60" />
-              </div>
-              <div className="flex space-x-2">
-                <Button variant="outline" className="flex-1 h-9 border-gray-100 hover:bg-gray-50 text-gray-500 text-[12px] font-[600]">
-                  <Download className="w-3.5 h-3.5 mr-1.5" />
-                  이미지
-                </Button>
-                <Button variant="outline" className="flex-1 h-9 border-gray-100 hover:bg-gray-50 text-gray-500 text-[12px] font-[600]">
-                  <Download className="w-3.5 h-3.5 mr-1.5" />
-                  JSON
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Original Images Section */}
+      {/* Attached Images Section */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
         <div className="flex items-center space-x-2 mb-6">
           <ImageIcon className="w-5 h-5 text-gray-600" />
-          <h2 className="text-[16px] font-[700] text-gray-900">원본 이미지</h2>
+          <h2 className="text-[16px] font-[700] text-gray-900">첨부 이미지</h2>
         </div>
-        <div className="grid grid-cols-5 gap-4">
-          {detailData.originalImages.map((item, index) => (
-            <div key={`original-${index}`} className="flex flex-col space-y-3">
-              <div className="aspect-[4/3] bg-gray-100 rounded-lg flex items-center justify-center border border-gray-100">
-                <ImageIcon className="w-10 h-10 text-gray-300" />
+        {imageUrls.length === 0 ? (
+          <div className="text-[13px] text-gray-400">첨부된 이미지가 없습니다.</div>
+        ) : (
+          <div className="grid grid-cols-5 gap-4">
+            {imageUrls.map((url, index) => (
+              <div key={`${url}-${index}`} className="flex flex-col space-y-3">
+                <div className="aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt={`첨부 ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
-              <Button variant="outline" className="w-full h-9 border-gray-100 hover:bg-gray-50 text-gray-500 text-[12px] font-[600]">
-                <Download className="w-3.5 h-3.5 mr-1.5" />
-                이미지
-              </Button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
