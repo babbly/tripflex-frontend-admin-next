@@ -17,7 +17,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingPasswordChange, setPendingPasswordChange] = useState(false);
 
-  // 비밀번호 변경이 끝나면(mustChangePassword=false) /banner로 이동.
   useEffect(() => {
     if (pendingPasswordChange && user && !user.mustChangePassword) {
       setPendingPasswordChange(false);
@@ -31,7 +30,6 @@ export default function LoginPage() {
     try {
       const { mustChangePassword } = await login(loginId, password);
       if (mustChangePassword) {
-        // 변경 모달 노출 → 완료 후 useEffect가 /banner로 이동시킴.
         setPendingPasswordChange(true);
       } else {
         router.replace('/banner');

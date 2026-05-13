@@ -1,8 +1,5 @@
 'use client';
 
-// FAQ 수정.
-// api.json: GET → 폼 hydrate / PATCH /api/admin/faqs/{id} (locale 변경 불가)
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -60,7 +57,6 @@ export default function FAQEditPage() {
     enabled: !!faqId,
   });
 
-  // 서버 응답을 1회 hydrate
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     if (!data || hydrated) return;

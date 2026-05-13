@@ -1,12 +1,5 @@
 'use client';
 
-// 어드민 계정 관리.
-// api.json: /api/admin/admins (CRUD)
-// - 신규 등록: 백엔드가 초기 비밀번호 '0000' 고정 발급 (해당 계정의 첫 로그인 시 변경 모달 강제)
-// - loginId 변경 불가
-// - 자기 자신 삭제 차단(백엔드)
-// - 권한 그룹은 authGroupId로 연결, 표시는 SUPER/OPERATOR + 권한그룹명
-
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -63,7 +56,6 @@ export default function AccountsPage() {
       adminAccountApi.list({ page, size, keyword: keyword || undefined }),
   });
 
-  // 권한 그룹 카탈로그 — 폼 select와 목록 표시용
   const { data: authGroupsData } = useQuery({
     queryKey: ['auth-groups-all'],
     queryFn: () => authGroupApi.list({ page: 0, size: 500 }),
@@ -162,7 +154,6 @@ export default function AccountsPage() {
       if (deleteTarget?.id === editing?.id) handleCloseForm();
     },
     onError: (e) => {
-      // 자기 자신 삭제 시도 등 — 백엔드 메시지 그대로 노출
       toast.error(e instanceof ApiError ? e.message : '삭제에 실패했습니다.');
     },
   });

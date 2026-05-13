@@ -1,8 +1,5 @@
 'use client';
 
-// 통화 탭 — api.json: /api/admin/currencies (CRUD)
-// 주의: API의 통화→국가는 1:1 (countryId). 기존 UI의 다중 국가 매핑은 단일 선택으로 변경.
-
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -44,7 +41,6 @@ export default function CurrencyTab() {
     queryFn: () => currencyApi.list({ page: 0, size: FETCH_SIZE }),
   });
 
-  // 폼의 연결 국가 선택용 — 전체 국가 한번에 로드 (size 큼)
   const { data: countryData } = useQuery({
     queryKey: ['countries-all-for-currency'],
     queryFn: () => countryApi.list({ page: 0, size: 500 }),

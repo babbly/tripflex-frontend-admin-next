@@ -1,5 +1,3 @@
-// 통화 API 클라이언트 — /api/admin/currencies
-
 import { adminApi } from './admin-api';
 import type {
   CurrencyCreateRequest,

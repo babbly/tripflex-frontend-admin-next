@@ -1,9 +1,5 @@
 'use client';
 
-// FAQ 목록.
-// api.json: GET /api/admin/faqs — page/size/locale/category/activeOnly 필터
-// answer는 rich HTML이라 accordion 내부에서 dangerouslySetInnerHTML 로 렌더.
-
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';

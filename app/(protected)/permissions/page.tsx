@@ -1,11 +1,5 @@
 'use client';
 
-// 권한 그룹 관리.
-// api.json: /api/admin/auth-groups (CRUD) + /menus (메뉴 카탈로그)
-// 생성: 2-step (POST 기본 정보 → PATCH로 menuPermissions 일괄 설정)
-// 수정: PATCH 한 번에 그룹 정보 + menuPermissions 전체 교체
-// menuPermissions는 일부만 보내면 빠진 메뉴는 권한 박탈됨 → 항상 전체 12건 전송.
-
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -53,7 +47,6 @@ import {
 } from '@/types/auth-group';
 import { ApiError } from '@/types/api';
 
-// lucide 아이콘명 → 컴포넌트 매핑 (백엔드 메뉴 카탈로그의 icon 필드)
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard,
   Image: ImageIcon,
@@ -127,7 +120,6 @@ export default function PermissionsPage() {
     enabled: !!editingId,
   });
 
-  // 편집 모드 진입 / 메뉴 또는 detail 변경 시 폼 hydrate
   useEffect(() => {
     if (editingId && detailData) {
       setGroupCode(detailData.groupCode);
@@ -136,7 +128,6 @@ export default function PermissionsPage() {
       setActive(detailData.active);
       setPerms(buildPermissionState(menus ?? [], detailData.menuPermissions));
     } else if (!editingId) {
-      // 신규
       setGroupCode('');
       setGroupName('');
       setDescription('');
@@ -174,7 +165,6 @@ export default function PermissionsPage() {
         description: description || undefined,
         active,
       });
-      // 신규 그룹에 menuPermissions 설정 (POST는 menuPermissions를 받지 않으므로 즉시 PATCH)
       await authGroupApi.update(created.id, {
         groupName: created.groupName,
         description: created.description,
@@ -221,7 +211,6 @@ export default function PermissionsPage() {
       if (deleteTarget?.id === editingId) handleCloseForm();
     },
     onError: (e) => {
-      // 계정 연결 그룹 삭제 차단(409 등) 메시지 그대로 노출
       toast.error(e instanceof ApiError ? e.message : '삭제에 실패했습니다.');
     },
   });

@@ -1,6 +1,3 @@
-// 권한 그룹 API 클라이언트 — /api/admin/auth-groups
-// Deprecated 2건 (.../menus 조회, .../menus/{menuId} PUT) 제외하고 신규 API만 사용.
-
 import { adminApi } from './admin-api';
 import type {
   AdminMenuResponse,
@@ -34,7 +31,6 @@ export const authGroupApi = {
     adminApi.patch<AuthGroupResponse>(`/api/admin/auth-groups/${id}`, body),
   remove: (id: string) =>
     adminApi.delete<void>(`/api/admin/auth-groups/${id}`),
-  // 전체 메뉴 카탈로그 (path 없는 카테고리 제외, 12개 반환)
   menus: () =>
     adminApi.get<AdminMenuResponse[]>('/api/admin/auth-groups/menus'),
 };

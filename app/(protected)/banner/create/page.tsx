@@ -1,12 +1,5 @@
 'use client';
 
-// 배너 추가.
-// api.json: POST /api/admin/banners — 필수 필드: title, imageUrl
-// startAt/endAt 은 date-time. UI에서 yyyy-MM-dd 입력 → 시작은 00:00:00, 종료는 23:59:59 로 보정.
-//
-// 이미지 업로드: api.md 보류 항목 (AWS 키 대기, POST /api/admin/banners/image-upload-url 미구현).
-// → 임시로 imageUrl 텍스트 입력. 업로드 엔드포인트 수령 후 파일 선택 → presigned PUT → URL 전달 흐름으로 교체.
-
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Check, Info, Link as LinkIcon } from 'lucide-react';

@@ -1,5 +1,3 @@
-// 국가 도메인 타입 — api.json: CountryResponse / CountryCreateRequest / CountryUpdateRequest
-
 export type CountryResponse = {
   id: string;
   countryCode: string;
@@ -27,7 +25,6 @@ export type CountryCreateRequest = {
   active?: boolean;
 };
 
-// 수정 시 countryCode 변경 불가 (api.json: CountryUpdateRequest)
 export type CountryUpdateRequest = {
   nameKo: string;
   nameEn: string;

@@ -1,7 +1,3 @@
-// 어드민 JWT 토큰 저장소.
-// localStorage + 메모리 캐시. SSR 안전.
-// refresh rotation 정책 확정 전이라 양쪽 토큰 모두 갱신 가능하도록 둠.
-
 const ACCESS_KEY = 'tripflex.admin.accessToken';
 const REFRESH_KEY = 'tripflex.admin.refreshToken';
 

@@ -1,9 +1,5 @@
 'use client';
 
-// 관리자 활동 로그 (read-only).
-// api.json: GET /api/admin/activity-logs — keyword/actionType/startDate/endDate 필터
-// actionType 값 카탈로그: api.md / P-11 기획 확정 전이라 현재 UI의 옵션 그대로 유지.
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -32,7 +28,6 @@ import { ApiError } from '@/types/api';
 
 function formatDateTime(iso?: string) {
   if (!iso) return '-';
-  // 백엔드가 KST 가정으로 ISO date-time을 그대로 전달 (timezone 마커 없음). slice로 표시만.
   return iso.replace('T', ' ').slice(0, 19);
 }
 

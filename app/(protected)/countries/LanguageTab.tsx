@@ -1,7 +1,5 @@
 'use client';
 
-// 언어 탭 — api.json: /api/admin/languages (CRUD)
-
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';

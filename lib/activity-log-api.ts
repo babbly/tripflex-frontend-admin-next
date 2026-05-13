@@ -1,6 +1,3 @@
-// 활동 로그 API 클라이언트 — read-only.
-// api.json: /api/admin/activity-logs, /api/admin/activity-logs/admin/{loginId}
-
 import { adminApi } from './admin-api';
 import type {
   ActivityLogByAdminParams,

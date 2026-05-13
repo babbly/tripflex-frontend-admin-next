@@ -1,9 +1,5 @@
 'use client';
 
-// 디자인 시스템 "알림 모달" — Figma node 1338:16206
-// shadcn AlertDialog wrapper의 grid / space-x 기본값이 Figma 스펙과 충돌해서
-// Radix 프리미티브를 직접 사용하고 스타일을 처음부터 잡음.
-
 import React from 'react';
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 

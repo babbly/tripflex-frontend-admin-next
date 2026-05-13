@@ -1,9 +1,5 @@
 'use client';
 
-// 배너 수정.
-// GET /api/admin/banners/{id} → 폼 채우기 / PATCH /api/admin/banners/{id} → 저장
-// 이미지 업로드 부분은 create 페이지와 동일하게 URL 입력으로 임시 처리.
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Check, Info, Link as LinkIcon } from 'lucide-react';
@@ -60,7 +56,6 @@ export default function BannerEditPage() {
   const [endDate, setEndDate] = useState('');
   const [isActive, setIsActive] = useState(true);
 
-  // 서버에서 받은 값으로 1회 hydrate
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     if (!data || hydrated) return;
@@ -87,7 +82,6 @@ export default function BannerEditPage() {
         startAt: toIsoStart(startDate),
         endAt: toIsoEnd(endDate),
         active: isActive,
-        // displayOrder/imagePath는 서버 값 유지
         displayOrder: data?.displayOrder,
         imagePath: data?.imagePath,
       }),

@@ -1,6 +1,3 @@
-// 배너 도메인 타입 — api.json: BannerResponse / BannerCreateRequest / BannerUpdateRequest / BannerReorderItem
-// position: TOP|BOTTOM|HOME — api.md 명세상 어드민 UI의 상단/중단/하단 ↔ TOP/HOME/BOTTOM 매핑
-
 export const BANNER_POSITIONS = ['TOP', 'BOTTOM', 'HOME'] as const;
 export type BannerPosition = (typeof BANNER_POSITIONS)[number];
 
@@ -46,11 +43,9 @@ export type BannerListParams = {
   size?: number;
   position?: BannerPosition;
   activeOnly?: boolean;
-  // expiredOnly=true: active=false + endAt < now (NULL endAt 제외), endAt DESC 정렬.
-  // activeOnly와 동시 지정 시 expiredOnly가 우선. (백엔드 커밋 44169af)
+  // expiredOnly와 activeOnly 동시 지정 시 expiredOnly 우선 (백엔드 동작)
   expiredOnly?: boolean;
   keyword?: string;
-  // yyyy-MM-dd
   startDate?: string;
   endDate?: string;
 };

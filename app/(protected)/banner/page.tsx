@@ -1,11 +1,5 @@
 'use client';
 
-// 배너 목록.
-// 서버 페이지네이션 / position(TOP/HOME/BOTTOM) 탭 / keyword + startDate/endDate 필터
-// 활성 토글: PATCH /banners/{id}, 삭제: DELETE /banners/{id}, 순서 변경: PATCH /banners/reorder
-//
-// 주의: 검색 keyword 입력은 디바운스 없이 페이지 1로 검색 버튼 없이 즉시 호출 — 추후 필요 시 디바운스 추가.
-
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -62,7 +56,6 @@ import {
 } from '@/types/banner';
 import { ApiError } from '@/types/api';
 
-// 'ENDED' = 종료된 배너 탭 (백엔드 필터 명세 대기, 현재 placeholder)
 type BannerTab = BannerPosition | 'ENDED';
 const TABS: { id: BannerTab; label: string }[] = [
   ...BANNER_POSITIONS.map((p) => ({ id: p, label: BANNER_POSITION_LABELS[p] })),
@@ -166,7 +159,6 @@ export default function BannerPage() {
   const [endDate, setEndDate] = useState('');
 
   const isEnded = activeTab === 'ENDED';
-  // 페이지네이션 제거 — 전체 로드해서 순서 변경 등에 사용
   const FETCH_SIZE = 500;
 
   const queryKey = useMemo(
@@ -180,7 +172,6 @@ export default function BannerPage() {
       bannerApi.list(
         isEnded
           ? {
-              // 종료된 배너: 백엔드가 active=false + endAt<now 필터 + endAt DESC 정렬 처리
               page: 0,
               size: FETCH_SIZE,
               expiredOnly: true,
@@ -199,7 +190,6 @@ export default function BannerPage() {
       ),
   });
 
-  // 드래그 정렬을 즉시 반영하기 위한 로컬 오버라이드
   const [localOrder, setLocalOrder] = useState<BannerResponse[] | null>(null);
   useEffect(() => {
     setLocalOrder(null);
@@ -268,7 +258,6 @@ export default function BannerPage() {
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
-    // 종료된 배너 탭에서는 순서 변경 비활성화 — 백엔드가 endAt DESC 고정 정렬
     if (isEnded) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;

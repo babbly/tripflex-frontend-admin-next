@@ -1,5 +1,3 @@
-// 언어 API 클라이언트 — /api/admin/languages
-
 import { adminApi } from './admin-api';
 import type {
   LanguageCreateRequest,

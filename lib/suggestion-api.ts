@@ -1,5 +1,3 @@
-// 제안 관리 API 클라이언트 — /api/admin/suggestions, /api/admin/suggestion-categories
-
 import { adminApi } from './admin-api';
 import { authToken } from './auth-token';
 import type {
@@ -45,7 +43,6 @@ export const suggestionApi = {
       `/api/admin/suggestions/${suggestionId}/comments/${commentId}/confirm`,
     ),
 
-  // 다운로드: Bearer 헤더 포함 fetch 후 blob 다운로드.
   downloadJson: async (params: SuggestionListParams = {}) => {
     const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/suggestions/download/json${toQuery(params)}`;
     const access = authToken.getAccess();

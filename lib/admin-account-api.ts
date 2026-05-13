@@ -1,5 +1,3 @@
-// 어드민 계정 API 클라이언트 — /api/admin/admins
-
 import { adminApi } from './admin-api';
 import type {
   AdminAccountCreateRequest,

@@ -1,12 +1,5 @@
 'use client';
 
-// 첫 로그인 시 비밀번호 변경 모달.
-// - mustChangePassword=true 일 때 보호된 레이아웃이 이 모달을 띄움
-// - 모달은 닫기 / 외부 클릭으로 dismiss 불가 (강제 흐름)
-// - 유효성: 새 비밀번호는 ^(?=.*[A-Za-z])(?=.*\d).{8,}$ (api.json ChangePasswordRequest 패턴)
-//   + 확인 입력이 새 비밀번호와 일치해야 "완료" 버튼 활성화
-// - 성공 시 markPasswordChanged() 호출 → 모달 자동 닫힘 (배너 페이지가 그대로 노출됨)
-
 import React, { useState } from 'react';
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 import { toast } from 'sonner';
@@ -87,9 +80,6 @@ export function ChangePasswordModal({ open }: { open: boolean }) {
       <AlertDialogPrimitive.Portal>
         <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
         <AlertDialogPrimitive.Content
-          // AlertDialog는 외부 클릭으로 닫히지 않음 (Dialog와 차이점).
-          // ESC도 onOpenChange를 호출하지만, 본 컴포넌트는 onOpenChange를 미연결해
-          // controlled open 상태가 유지되어 dismiss되지 않음.
           className="
             fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%]
             w-[491px] max-w-[calc(100vw-32px)]

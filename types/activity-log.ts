@@ -1,5 +1,3 @@
-// 활동 로그 도메인 타입 — api.json: ActivityLogResponse
-
 export type ActivityLogResponse = {
   id: string;
   adminName: string;
@@ -16,7 +14,6 @@ export type ActivityLogListParams = {
   size?: number;
   actionType?: string;
   keyword?: string;
-  // yyyy-MM-dd
   startDate?: string;
   endDate?: string;
 };

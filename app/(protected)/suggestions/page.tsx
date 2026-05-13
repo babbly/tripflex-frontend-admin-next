@@ -1,9 +1,5 @@
 'use client';
 
-// 유저 제안 관리 — api.json: /api/admin/suggestions (read-only + review/comment via 상세)
-// 필터: status / content keyword / deviceId / categoryCode / startDate / endDate
-// 다운로드: JSON (현재 필터 그대로 적용) — 이미지 ZIP은 S3 키 대기 (api.md 보류)
-
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';

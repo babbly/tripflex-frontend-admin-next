@@ -1,7 +1,3 @@
-// 배너 API 클라이언트.
-// api.json 경로: /api/admin/banners (CRUD + reorder)
-// reorder는 body가 ApiResponse가 아닌 배열 그대로 전달.
-
 import { adminApi } from './admin-api';
 import type {
   BannerCreateRequest,

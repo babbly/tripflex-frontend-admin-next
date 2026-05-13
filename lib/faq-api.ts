@@ -1,5 +1,3 @@
-// FAQ API 클라이언트 — /api/admin/faqs
-
 import { adminApi } from './admin-api';
 import type {
   FaqCreateRequest,

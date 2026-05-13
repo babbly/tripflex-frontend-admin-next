@@ -1,9 +1,5 @@
 'use client';
 
-// FAQ 생성.
-// api.json: POST /api/admin/faqs — required: category, question, answer(min 1), locale
-// answer는 리치텍스트 — contentEditable HTML을 그대로 전송.
-
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

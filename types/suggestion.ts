@@ -1,6 +1,3 @@
-// 제안 도메인 타입 — api.json: SuggestionSummary / SuggestionDetail / CommentRequest /
-// CommentResponse / ReviewRequest / SuggestionCategory*
-
 export const SUGGESTION_STATUSES = ['PENDING', 'REVIEWED', 'CLOSED'] as const;
 export type SuggestionStatus = (typeof SUGGESTION_STATUSES)[number];
 
@@ -19,7 +16,6 @@ export type SuggestionSummary = {
   deviceId?: string;
   imageUrl?: string;
   insDttm?: string;
-  // api.md엔 categoryCode/Name 언급. openapi엔 없지만 백엔드가 보낼 수 있음.
   categoryCode?: string;
   categoryName?: string;
 };
@@ -46,7 +42,6 @@ export type SuggestionDetail = {
   reviewedAt?: string;
   insDttm?: string;
   comments?: CommentResponse[];
-  // 편의 필드 (백엔드가 보낼 가능성 있음, 없으면 undefined로 안전)
   deviceId?: string;
   categoryCode?: string;
   categoryName?: string;
@@ -73,7 +68,6 @@ export type SuggestionListParams = {
   endDate?: string;
 };
 
-// 카테고리
 export type SuggestionCategoryResponse = {
   id: string;
   code: string;

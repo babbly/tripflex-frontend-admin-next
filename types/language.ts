@@ -1,5 +1,3 @@
-// 언어 도메인 타입 — api.json: LanguageResponse / LanguageCreateRequest / LanguageUpdateRequest
-
 export type LanguageResponse = {
   id: string;
   languageCode: string;
@@ -23,7 +21,6 @@ export type LanguageCreateRequest = {
   active?: boolean;
 };
 
-// 수정 시 languageCode 변경 불가
 export type LanguageUpdateRequest = {
   nameKo: string;
   nameEn: string;

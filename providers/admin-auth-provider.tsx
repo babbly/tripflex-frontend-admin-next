@@ -1,11 +1,5 @@
 'use client';
 
-// 어드민 인증 컨텍스트.
-// - localStorage에 저장된 토큰 + sessionStorage의 user 정보를 hydrate
-// - login: 백엔드 호출 → 토큰 저장 → 사용자 정보 컨텍스트 반영 → mustChangePassword 반환
-// - logout: 백엔드 로그아웃 호출(body refreshToken 강제) → 컨텍스트 비움 → /login 이동
-// - 라우트 가드 / 권한 체크용 user/permissions 노출
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { adminAuthApi } from '@/lib/admin-api';
@@ -27,14 +21,12 @@ type AdminAuthContextValue = {
   user: AdminUser | null;
   permissions: Record<string, MenuPermission> | null;
   isAuthenticated: boolean;
-  // hydrate가 끝나야 라우트 가드가 안전하게 동작
   isReady: boolean;
   login: (
     loginId: string,
     password: string,
   ) => Promise<{ mustChangePassword: boolean }>;
   logout: () => Promise<void>;
-  // 비밀번호 변경 후 mustChangePassword 플래그 갱신
   markPasswordChanged: () => void;
 };
 
@@ -91,9 +83,8 @@ export function AdminAuthProvider({
     try {
       await adminAuthApi.logout();
     } catch (e) {
-      // 백엔드 응답 실패해도 클라 상태는 비움
       if (!(e instanceof ApiError)) {
-        // ignore
+        /* swallow */
       }
     } finally {
       authToken.clear();
@@ -103,7 +94,6 @@ export function AdminAuthProvider({
     }
   };
 
-  // 비밀번호 변경 후 mustChangePassword 플래그 갱신
   const markPasswordChanged = () => {
     if (!user) return;
     const next = { ...user, mustChangePassword: false };

@@ -1,8 +1,5 @@
 'use client';
 
-// 국가 탭 — api.json: /api/admin/countries (CRUD)
-// 국기 업로드는 외부 키 대기 (api.md). 임시로 flagImageUrl 텍스트 입력.
-
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -55,7 +52,6 @@ export default function CountryTab() {
   const [displayOrder, setDisplayOrder] = useState(0);
   const [active, setActive] = useState(true);
 
-  // editing 변경 시 폼 hydrate
   useEffect(() => {
     if (editing) {
       setCountryCode(editing.countryCode);

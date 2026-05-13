@@ -1,8 +1,5 @@
 'use client';
 
-// 국가 관리 — 국가/언어/통화 3탭 래퍼.
-// 각 탭이 자체 데이터/뮤테이션을 가진다 (CountryTab/LanguageTab/CurrencyTab).
-
 import { useState } from 'react';
 import { PageTitle } from '@/components/ui/page-title';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';

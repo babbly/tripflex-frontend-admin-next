@@ -1,11 +1,5 @@
 'use client';
 
-// 유저 제안 상세 — api.json
-// - GET /api/admin/suggestions/{id}
-// - PATCH .../review → 처리 상태 변경 (REVIEWED/CLOSED) + adminNote
-// - POST .../comments → 담당자 의견 추가
-// - PATCH .../comments/{commentId}/confirm → 댓글 확인 토글
-
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -38,7 +32,6 @@ export default function SuggestionDetailPage() {
     enabled: !!suggestionId,
   });
 
-  // 카테고리명 매핑용
   const { data: catData } = useQuery({
     queryKey: ['suggestion-categories-all'],
     queryFn: () =>
