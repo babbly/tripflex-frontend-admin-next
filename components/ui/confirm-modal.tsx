@@ -1,17 +1,11 @@
 'use client';
 
+// 디자인 시스템 "알림 모달" — Figma node 1338:16206
+// shadcn AlertDialog wrapper의 grid / space-x 기본값이 Figma 스펙과 충돌해서
+// Radix 프리미티브를 직접 사용하고 스타일을 처음부터 잡음.
+
 import React from 'react';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -45,44 +39,71 @@ export function ConfirmModal({
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="w-[90%] sm:max-w-[491px] p-[30px] rounded-2xl border-0 shadow-lg gap-[20px]">
-        <AlertDialogHeader className="w-full sm:w-[431px] flex flex-col items-center justify-center">
-          <AlertDialogTitle className="w-full h-[65px] flex items-center justify-center text-[#091D32] text-center text-[20px] font-[600] leading-[30px] m-0 p-0">
-            {title}
-          </AlertDialogTitle>
-          {description && (
-            <AlertDialogDescription className="w-full h-[65px] flex items-center justify-center text-center text-[15px] text-[#555968] font-medium m-0 p-0">
-              {description}
-            </AlertDialogDescription>
-          )}
-        </AlertDialogHeader>
+    <AlertDialogPrimitive.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogPrimitive.Portal>
+        <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <AlertDialogPrimitive.Content
+          className="
+            fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%]
+            w-[491px] max-w-[calc(100vw-32px)]
+            bg-white rounded-[16px] overflow-hidden
+            p-[30px] flex flex-col items-center justify-center gap-[20px]
+            shadow-lg
+            data-[state=open]:animate-in data-[state=closed]:animate-out
+            data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0
+            data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95
+          "
+        >
+          <div className="flex flex-col items-center justify-center gap-[10px] w-full text-center text-[#091D32]">
+            <AlertDialogPrimitive.Title className="w-full h-[65px] flex items-center justify-center text-[20px] font-semibold leading-[30px]">
+              {title}
+            </AlertDialogPrimitive.Title>
+            {description && (
+              <AlertDialogPrimitive.Description
+                className="w-full h-[65px] flex items-center justify-center font-normal not-italic text-[#091D32] text-center text-[13px] leading-[20px]"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {description}
+              </AlertDialogPrimitive.Description>
+            )}
+          </div>
 
-        <AlertDialogFooter className="flex w-full gap-3 sm:space-x-0 sm:justify-center flex-row">
-          {variant === 'double' && (
-            <AlertDialogCancel asChild>
-              <Button
-                variant="secondary"
-                className="flex-1 bg-[#F4F5F7] hover:bg-gray-200 text-[#1C2340] h-12 rounded-xl text-base font-semibold border-0 mt-0"
+          <div className="flex items-center justify-center gap-[10px] w-full px-[30px]">
+            {variant === 'double' && (
+              <AlertDialogPrimitive.Cancel
                 onClick={onClose}
+                className="
+                  w-[200px] px-[16px] py-[13px]
+                  bg-[#F4F6FA] text-[#18181B]
+                  rounded-[6px]
+                  text-[13px] font-medium leading-[14px] tracking-[-0.13px]
+                  hover:bg-[#E4E7EE] transition-colors
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4186FF]
+                "
               >
                 {cancelText}
-              </Button>
-            </AlertDialogCancel>
-          )}
-          <AlertDialogAction asChild>
-            <Button
-              className={`flex-1 h-12 rounded-xl text-white ${actualConfirmColor === 'red'
-                ? 'bg-[#EF4444] hover:bg-red-600 text-base font-semibold'
-                : 'bg-[#4186FF] hover:bg-blue-600 text-[14px] font-[600] leading-normal'
-                }`}
+              </AlertDialogPrimitive.Cancel>
+            )}
+            <AlertDialogPrimitive.Action
               onClick={handleConfirm}
+              className={`
+                w-[200px] px-[16px] py-[13px]
+                text-white rounded-[6px]
+                text-[13px] font-medium leading-[14px] tracking-[-0.13px]
+                transition-colors
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+                ${
+                  actualConfirmColor === 'red'
+                    ? 'bg-[#EF4444] hover:bg-[#DC2626] focus-visible:ring-[#EF4444]'
+                    : 'bg-[#4186FF] hover:bg-[#3271DC] focus-visible:ring-[#4186FF]'
+                }
+              `}
             >
               {confirmText}
-            </Button>
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            </AlertDialogPrimitive.Action>
+          </div>
+        </AlertDialogPrimitive.Content>
+      </AlertDialogPrimitive.Portal>
+    </AlertDialogPrimitive.Root>
   );
 }

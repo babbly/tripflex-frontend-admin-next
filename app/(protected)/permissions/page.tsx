@@ -1,107 +1,276 @@
 'use client';
 
-import React, { useState } from 'react';
+// 권한 그룹 관리.
+// api.json: /api/admin/auth-groups (CRUD) + /menus (메뉴 카탈로그)
+// 생성: 2-step (POST 기본 정보 → PATCH로 menuPermissions 일괄 설정)
+// 수정: PATCH 한 번에 그룹 정보 + menuPermissions 전체 교체
+// menuPermissions는 일부만 보내면 빠진 메뉴는 권한 박탈됨 → 항상 전체 12건 전송.
+
+import React, { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  BarChart,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  FileText,
+  Globe,
+  HelpCircle,
+  Image as ImageIcon,
+  LayoutDashboard,
+  MessageSquare,
+  Plus,
+  Scan,
+  Shield,
+  Tag,
+  Users,
+} from 'lucide-react';
 import { PageTitle } from '@/components/ui/page-title';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, ChevronRight, ImageIcon, MessageSquare, Globe, BookOpen } from 'lucide-react';
 import { EditButton, DeleteButton } from '@/components/ui/action-buttons';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { AdminTableHeaderRow, AdminTableHead } from '@/components/ui/admin-table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-interface Role {
-  id: string;
-  name: string;
+import {
+  AdminTableHead,
+  AdminTableHeaderRow,
+} from '@/components/ui/admin-table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { authGroupApi } from '@/lib/auth-group-api';
+import {
+  AdminMenuResponse,
+  AuthGroupMenuPermission,
+  AuthGroupResponse,
+} from '@/types/auth-group';
+import { ApiError } from '@/types/api';
+
+// lucide 아이콘명 → 컴포넌트 매핑 (백엔드 메뉴 카탈로그의 icon 필드)
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  LayoutDashboard,
+  Image: ImageIcon,
+  Shield,
+  Scan,
+  Globe,
+  Users,
+  MessageSquare,
+  HelpCircle,
+  ClipboardList,
+  FileText,
+  Tag,
+  BarChart,
+  BookOpen,
+};
+
+type PermissionState = Record<
+  string, // menuId
+  { canRead: boolean; canWrite: boolean; canDelete: boolean }
+>;
+
+function buildPermissionState(
+  menus: AdminMenuResponse[],
+  serverPerms?: AuthGroupMenuPermission[] | null,
+): PermissionState {
+  const state: PermissionState = {};
+  const byMenuId = new Map<string, AuthGroupMenuPermission>();
+  (serverPerms || []).forEach((p) => byMenuId.set(p.menuId, p));
+  menus.forEach((m) => {
+    const p = byMenuId.get(m.id);
+    state[m.id] = {
+      canRead: p?.canRead ?? false,
+      canWrite: p?.canWrite ?? false,
+      canDelete: p?.canDelete ?? false,
+    };
+  });
+  return state;
 }
-
-interface Permission {
-  page: string;
-  read: boolean;
-  write: boolean;
-  delete: boolean;
-}
-
-const CustomImageAnalysisIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" fill="none" className={className}>
-    <g clipPath="url(#clip0_774_94064)">
-      <path d="M11.9166 6.4987H10.5733C10.3366 6.49819 10.1062 6.57524 9.91742 6.71805C9.72863 6.86087 9.59181 7.0616 9.5279 7.28953L8.25498 11.8179C8.24677 11.846 8.22967 11.8707 8.20623 11.8883C8.18279 11.9059 8.15428 11.9154 8.12498 11.9154C8.09568 11.9154 8.06717 11.9059 8.04373 11.8883C8.02029 11.8707 8.00318 11.846 7.99498 11.8179L5.00498 1.17953C4.99678 1.1514 4.97967 1.12669 4.95623 1.10911C4.93279 1.09153 4.90428 1.08203 4.87498 1.08203C4.84568 1.08203 4.81717 1.09153 4.79373 1.10911C4.77029 1.12669 4.75318 1.1514 4.74498 1.17953L3.47206 5.70786C3.4084 5.93491 3.27239 6.13498 3.0847 6.2777C2.897 6.42043 2.66786 6.49802 2.43206 6.4987H1.08331" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </g>
-    <defs>
-      <clipPath id="clip0_774_94064">
-        <rect width="13" height="13" fill="white" />
-      </clipPath>
-    </defs>
-  </svg>
-);
-
-const mockRoles: Role[] = [
-  { id: '1', name: '슈퍼관리자' },
-  { id: '2', name: '관리자' },
-  { id: '3', name: '뷰어' },
-];
-
-const mockPermissions: Permission[] = [
-  { page: '홈 배너 관리', read: true, write: true, delete: false },
-  { page: '이미지 분석 목록', read: true, write: false, delete: false },
-  { page: '유저 제안 관리', read: true, write: true, delete: false },
-  { page: 'FAQ 관리', read: true, write: true, delete: true },
-];
 
 export default function PermissionsPage() {
-  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+
+  const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
-  const ITEMS_PER_PAGE = parseInt(pageSize);
-  const [roles, setRoles] = useState<Role[]>(mockRoles);
-  const [permissions, setPermissions] = useState<Permission[]>(mockPermissions);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
+  const size = parseInt(pageSize, 10);
 
-  const handleDeleteClick = (id: string) => {
-    setRoleToDelete(id);
-    setIsDeleteModalOpen(true);
-  };
+  const { data: listData, isLoading: listLoading, isError: listError, error: listErrorObj } = useQuery({
+    queryKey: ['auth-groups', { page, size }],
+    queryFn: () => authGroupApi.list({ page, size }),
+  });
 
-  const confirmDelete = () => {
-    if (roleToDelete) {
-      setRoles(prev => prev.filter(r => r.id !== roleToDelete));
-      if (selectedRole?.id === roleToDelete) {
-        setSelectedRole(null);
-        setIsEditing(false);
-      }
-      setRoleToDelete(null);
+  const { data: menus } = useQuery({
+    queryKey: ['auth-groups', 'menus'],
+    queryFn: () => authGroupApi.menus(),
+  });
+
+  const groups = listData?.content ?? [];
+  const totalPages = listData?.totalPages ?? 0;
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [groupCode, setGroupCode] = useState('');
+  const [groupName, setGroupName] = useState('');
+  const [description, setDescription] = useState('');
+  const [active, setActive] = useState(true);
+  const [perms, setPerms] = useState<PermissionState>({});
+
+  const { data: detailData } = useQuery({
+    queryKey: ['auth-group', editingId],
+    queryFn: () => authGroupApi.detail(editingId!),
+    enabled: !!editingId,
+  });
+
+  // 편집 모드 진입 / 메뉴 또는 detail 변경 시 폼 hydrate
+  useEffect(() => {
+    if (editingId && detailData) {
+      setGroupCode(detailData.groupCode);
+      setGroupName(detailData.groupName);
+      setDescription(detailData.description ?? '');
+      setActive(detailData.active);
+      setPerms(buildPermissionState(menus ?? [], detailData.menuPermissions));
+    } else if (!editingId) {
+      // 신규
+      setGroupCode('');
+      setGroupName('');
+      setDescription('');
+      setActive(true);
+      setPerms(buildPermissionState(menus ?? []));
     }
+  }, [editingId, detailData, menus]);
+
+  const handleAdd = () => {
+    setEditingId(null);
+    setShowForm(true);
+  };
+  const handleEdit = (g: AuthGroupResponse) => {
+    setEditingId(g.id);
+    setShowForm(true);
+  };
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingId(null);
   };
 
-  const handlePermissionChange = (pageName: string, type: 'read' | 'write' | 'delete', checked: boolean) => {
-    setPermissions(prev =>
-      prev.map(p =>
-        p.page === pageName ? { ...p, [type]: checked } : p
-      )
-    );
+  const buildMenuPermissionsPayload = () =>
+    (menus ?? []).map((m) => ({
+      menuId: m.id,
+      canRead: perms[m.id]?.canRead ?? false,
+      canWrite: perms[m.id]?.canWrite ?? false,
+      canDelete: perms[m.id]?.canDelete ?? false,
+    }));
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const created = await authGroupApi.create({
+        groupCode: groupCode.trim().toUpperCase(),
+        groupName: groupName.trim(),
+        description: description || undefined,
+        active,
+      });
+      // 신규 그룹에 menuPermissions 설정 (POST는 menuPermissions를 받지 않으므로 즉시 PATCH)
+      await authGroupApi.update(created.id, {
+        groupName: created.groupName,
+        description: created.description,
+        displayOrder: created.displayOrder,
+        active: created.active,
+        menuPermissions: buildMenuPermissionsPayload(),
+      });
+    },
+    onSuccess: () => {
+      toast.success('등록되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['auth-groups'] });
+      handleCloseForm();
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : '등록에 실패했습니다.');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () =>
+      authGroupApi.update(editingId!, {
+        groupName: groupName.trim(),
+        description: description || undefined,
+        active,
+        menuPermissions: buildMenuPermissionsPayload(),
+      }),
+    onSuccess: () => {
+      toast.success('수정되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['auth-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-group', editingId] });
+      handleCloseForm();
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : '수정에 실패했습니다.');
+    },
+  });
+
+  const [deleteTarget, setDeleteTarget] = useState<AuthGroupResponse | null>(null);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => authGroupApi.remove(id),
+    onSuccess: () => {
+      toast.success('삭제되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['auth-groups'] });
+      if (deleteTarget?.id === editingId) handleCloseForm();
+    },
+    onError: (e) => {
+      // 계정 연결 그룹 삭제 차단(409 등) 메시지 그대로 노출
+      toast.error(e instanceof ApiError ? e.message : '삭제에 실패했습니다.');
+    },
+  });
+
+  const handleSave = () => {
+    if (!editingId && !groupCode.trim()) {
+      toast.error('그룹 코드를 입력해주세요.');
+      return;
+    }
+    if (!groupName.trim()) {
+      toast.error('그룹명을 입력해주세요.');
+      return;
+    }
+    if (editingId) updateMutation.mutate();
+    else createMutation.mutate();
   };
 
-  const handleAddClick = () => {
-    setSelectedRole(null);
-    setIsEditing(true);
+  const togglePerm = (
+    menuId: string,
+    field: 'canRead' | 'canWrite' | 'canDelete',
+    next: boolean,
+  ) => {
+    setPerms((prev) => ({
+      ...prev,
+      [menuId]: {
+        canRead: prev[menuId]?.canRead ?? false,
+        canWrite: prev[menuId]?.canWrite ?? false,
+        canDelete: prev[menuId]?.canDelete ?? false,
+        [field]: next,
+      },
+    }));
   };
 
-  const handleEditClick = (role: Role) => {
-    setSelectedRole(role);
-    setIsEditing(true);
+  const renderMenuIcon = (menu: AdminMenuResponse) => {
+    const Icon = ICON_MAP[menu.icon ?? ''];
+    return Icon ? <Icon className="w-4 h-4 text-gray-500" /> : null;
   };
 
   return (
     <div className="w-full flex gap-6 pb-12">
-      {/* Left Column: Role List */}
+      {/* Left: list */}
       <div className="flex-1 space-y-4">
         <div className="flex justify-between items-center">
           <PageTitle>권한 관리</PageTitle>
           <div className="flex items-center gap-3">
-            <Button onClick={handleAddClick} className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4">
+            <Button
+              onClick={handleAdd}
+              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4"
+            >
               <Plus className="w-4 h-4 mr-2" />
               권한 추가
             </Button>
@@ -111,7 +280,13 @@ export default function PermissionsPage() {
         <div className="bg-white rounded-lg border border-gray-200 flex flex-col shadow-sm">
           <div className="flex justify-end p-4 border-b border-gray-100 items-center gap-2">
             <span className="text-[13px] text-gray-500">페이지당</span>
-            <Select value={pageSize} onValueChange={(val) => { setPageSize(val); setPage(1); }}>
+            <Select
+              value={pageSize}
+              onValueChange={(val) => {
+                setPageSize(val);
+                setPage(0);
+              }}
+            >
               <SelectTrigger className="w-[80px] h-10 text-sm border-gray-200">
                 <SelectValue placeholder="10" />
               </SelectTrigger>
@@ -127,16 +302,47 @@ export default function PermissionsPage() {
               <thead>
                 <AdminTableHeaderRow>
                   <AdminTableHead className="px-6 py-4">권한명</AdminTableHead>
-                  <AdminTableHead className="px-6 py-4 w-32 text-center">관리</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4 w-32 text-right">관리</AdminTableHead>
                 </AdminTableHeaderRow>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {roles.map((role) => (
-                  <tr key={role.id} className="bg-white hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">{role.name}</td>
+                {listLoading && (
+                  <tr>
+                    <td colSpan={2} className="px-6 py-8 text-center text-sm text-gray-500">
+                      불러오는 중...
+                    </td>
+                  </tr>
+                )}
+                {listError && !listLoading && (
+                  <tr>
+                    <td colSpan={2} className="px-6 py-8 text-center text-sm text-red-500">
+                      {listErrorObj instanceof ApiError
+                        ? listErrorObj.message
+                        : '목록을 불러오지 못했습니다.'}
+                    </td>
+                  </tr>
+                )}
+                {!listLoading && !listError && groups.length === 0 && (
+                  <tr>
+                    <td colSpan={2} className="px-6 py-8 text-center text-sm text-gray-500">
+                      등록된 권한 그룹이 없습니다.
+                    </td>
+                  </tr>
+                )}
+                {groups.map((g) => (
+                  <tr key={g.id} className="bg-white hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="flex items-center justify-center space-x-2">
-                        <EditButton onClick={() => handleEditClick(role)} />
+                      <span className="font-medium text-gray-900">{g.groupName}</span>
+                      <span className="ml-2 text-[12px] text-gray-400">{g.groupCode}</span>
+                      {!g.active && (
+                        <span className="ml-2 text-[11px] font-[600] px-2 py-0.5 rounded bg-gray-100 text-gray-500">
+                          비활성
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end space-x-2">
+                        <EditButton onClick={() => handleEdit(g)} />
                       </div>
                     </td>
                   </tr>
@@ -144,54 +350,98 @@ export default function PermissionsPage() {
               </tbody>
             </table>
           </div>
-          {/* Pagination */}
-          <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
-            <Button
-              variant="outline"
-              size="icon"
-              className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30"
-              disabled
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="default"
-              size="icon"
-              className="w-8 h-8 p-0 bg-[#4186FF] text-white text-[14px] font-[600] leading-normal hover:bg-blue-600 border-transparent shadow-sm"
-            >
-              1
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30"
-              disabled
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
+          {totalPages > 0 && (
+            <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
+                <Button
+                  key={p}
+                  variant={p === page ? 'primary' : 'outline'}
+                  size="icon"
+                  className={`w-8 h-8 p-0 ${
+                    p === page
+                      ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent shadow-sm'
+                      : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setPage(p)}
+                >
+                  {p + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-8 h-8 p-0 border-gray-200 text-gray-400 hover:bg-gray-50"
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Right Column: Role Edit Form */}
-      {isEditing && (
-        <div className="w-[360px] flex-shrink-0">
-          <div key={selectedRole?.id || 'new'} className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
+      {/* Right: edit form */}
+      {showForm && (
+        <div className="w-[420px] flex-shrink-0">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
             <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
               <h2 className="text-[16px] font-[700] text-[#18181B]">
-                {selectedRole ? '권한 편집' : '권한 추가'}
+                {editingId ? '권한 편집' : '권한 추가'}
               </h2>
-              {selectedRole && (
-                <DeleteButton onClick={() => handleDeleteClick(selectedRole.id)} />
+              {editingId && detailData && (
+                <DeleteButton onClick={() => setDeleteTarget(detailData)} />
               )}
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[14px] font-[600] text-[#18181B]">권한명</Label>
+              <Label className="text-[14px] font-[600] text-[#18181B]">
+                그룹 코드 {!editingId && <span className="text-red-500">*</span>}
+              </Label>
               <Input
-                value={selectedRole?.name || ''}
-                onChange={(e) => selectedRole && setSelectedRole({ ...selectedRole, name: e.target.value })}
+                value={groupCode}
+                onChange={(e) => setGroupCode(e.target.value)}
+                placeholder="OPERATOR"
+                maxLength={30}
+                disabled={!!editingId}
+                className={`h-11 ${editingId ? 'bg-gray-50 text-gray-500' : ''}`}
+              />
+              {editingId && (
+                <p className="text-[11px] text-gray-400">
+                  그룹 코드는 수정할 수 없습니다.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[14px] font-[600] text-[#18181B]">
+                권한명 <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
                 placeholder="권한명을 입력해주세요"
+                maxLength={100}
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[14px] font-[600] text-[#18181B]">설명</Label>
+              <Input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="설명을 입력해주세요"
+                maxLength={500}
                 className="h-11"
               />
             </div>
@@ -209,51 +459,72 @@ export default function PermissionsPage() {
                     </AdminTableHeaderRow>
                   </thead>
                   <tbody>
-                    {permissions.map((p) => (
-                      <tr key={p.page} className="border-b border-gray-200 last:border-0 hover:bg-gray-50">
-                        <td className="p-3 flex items-center space-x-2 text-gray-600">
-                          {p.page === '홈 배너 관리' && <ImageIcon className="w-4 h-4 text-gray-500" />}
-                          {p.page === '이미지 분석 목록' && <CustomImageAnalysisIcon className="w-4 h-4 text-gray-500" />}
-                          {p.page === '유저 제안 관리' && <MessageSquare className="w-4 h-4 text-gray-500" />}
-                          {p.page === 'FAQ 관리' && <BookOpen className="w-4 h-4 text-gray-500" />}
-                          <span>{p.page}</span>
-                        </td>
-                        <td className="p-3 text-center">
-                          <Checkbox
-                            checked={p.read}
-                            onCheckedChange={(checked) => handlePermissionChange(p.page, 'read', checked as boolean)}
-                            className={p.read ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
-                          />
-                        </td>
-                        <td className="p-3 text-center">
-                          <Checkbox
-                            checked={p.write}
-                            onCheckedChange={(checked) => handlePermissionChange(p.page, 'write', checked as boolean)}
-                            className={p.write ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
-                          />
-                        </td>
-                        <td className="p-3 text-center">
-                          <Checkbox
-                            checked={p.delete}
-                            onCheckedChange={(checked) => handlePermissionChange(p.page, 'delete', checked as boolean)}
-                            className={p.delete ? 'data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]' : ''}
-                          />
-                        </td>
-                      </tr>
-                    ))}
+                    {(menus ?? []).map((m) => {
+                      const p = perms[m.id] ?? {
+                        canRead: false,
+                        canWrite: false,
+                        canDelete: false,
+                      };
+                      return (
+                        <tr
+                          key={m.id}
+                          className="border-b border-gray-200 last:border-0 hover:bg-gray-50"
+                        >
+                          <td className="p-3 text-gray-600">
+                            <div className="flex items-center space-x-2">
+                              {renderMenuIcon(m)}
+                              <span>{m.menuName}</span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-center">
+                            <Checkbox
+                              checked={p.canRead}
+                              onCheckedChange={(c) =>
+                                togglePerm(m.id, 'canRead', c as boolean)
+                              }
+                              className="data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]"
+                            />
+                          </td>
+                          <td className="p-3 text-center">
+                            <Checkbox
+                              checked={p.canWrite}
+                              onCheckedChange={(c) =>
+                                togglePerm(m.id, 'canWrite', c as boolean)
+                              }
+                              className="data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]"
+                            />
+                          </td>
+                          <td className="p-3 text-center">
+                            <Checkbox
+                              checked={p.canDelete}
+                              onCheckedChange={(c) =>
+                                togglePerm(m.id, 'canDelete', c as boolean)
+                              }
+                              className="data-[state=checked]:bg-[#4186FF] data-[state=checked]:border-[#4186FF]"
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             </div>
 
             <div className="pt-4 flex flex-col space-y-2">
-              <Button className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-11">
-                저장
+              <Button
+                disabled={createMutation.isPending || updateMutation.isPending}
+                onClick={handleSave}
+                className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-11"
+              >
+                {createMutation.isPending || updateMutation.isPending
+                  ? '저장 중...'
+                  : '저장'}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full h-11 border-gray-200 text-gray-700 hover:bg-gray-50"
-                onClick={() => setIsEditing(false)}
+                onClick={handleCloseForm}
               >
                 취소
               </Button>
@@ -263,15 +534,18 @@ export default function PermissionsPage() {
       )}
 
       <ConfirmModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="권한을 삭제하시겠어요"
-        description="삭제 후에는 복구할수 없습니다."
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="권한 그룹을 삭제하시겠어요?"
+        description="삭제 후에는 복구할 수 없습니다."
         variant="double"
         confirmText="삭제"
         cancelText="취소"
         confirmColor="red"
-        onConfirm={confirmDelete}
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
       />
     </div>
   );
