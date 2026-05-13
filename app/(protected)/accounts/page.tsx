@@ -26,20 +26,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { adminAccountApi } from '@/lib/admin-account-api';
 import { authGroupApi } from '@/lib/auth-group-api';
-import {
-  AdminAccountResponse,
-  AdminRole,
-} from '@/types/admin-account';
+import { AdminAccountResponse } from '@/types/admin-account';
 import { ApiError } from '@/types/api';
-
-const AUTH_GROUP_NONE = '__NONE__';
-
-const ROLE_LABELS: Record<AdminRole, string> = {
-  SUPER: '슈퍼 관리자',
-  OPERATOR: '운영자',
-};
 
 export default function AccountsPage() {
   const queryClient = useQueryClient();
@@ -49,6 +40,16 @@ export default function AccountsPage() {
   const [keywordInput, setKeywordInput] = useState('');
   const [keyword, setKeyword] = useState('');
   const size = parseInt(pageSize, 10);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setKeyword(keywordInput.trim());
+      setPage(0);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [keywordInput]);
+
+  const hasSearchCondition = keyword.length > 0;
 
   const { data: listData, isLoading: listLoading, isError: listError, error: listErrorObj } = useQuery({
     queryKey: ['admin-accounts', { page, size, keyword }],
@@ -69,28 +70,34 @@ export default function AccountsPage() {
   const [showForm, setShowForm] = useState(false);
   const [loginId, setLoginId] = useState('');
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState<AdminRole>('OPERATOR');
   const [authGroupId, setAuthGroupId] = useState<string>('');
   const [active, setActive] = useState(true);
+
+  const [errors, setErrors] = useState<{
+    loginId?: string;
+    name?: string;
+    authGroupId?: string;
+  }>({});
 
   useEffect(() => {
     if (editing) {
       setLoginId(editing.loginId);
       setName(editing.name);
-      setEmail(editing.email ?? '');
-      setRole((editing.role as AdminRole) || 'OPERATOR');
       setAuthGroupId(editing.authGroupId ?? '');
       setActive(editing.active);
     } else {
       setLoginId('');
       setName('');
-      setEmail('');
-      setRole('OPERATOR');
       setAuthGroupId('');
       setActive(true);
     }
+    setErrors({});
   }, [editing]);
+
+  const isFormValid =
+    name.trim().length > 0 &&
+    authGroupId.length > 0 &&
+    (!!editing || loginId.trim().length > 0);
 
   const handleAdd = () => {
     setEditing(null);
@@ -112,17 +119,17 @@ export default function AccountsPage() {
       adminAccountApi.create({
         loginId: loginId.trim(),
         name: name.trim(),
-        email: email.trim() || undefined,
-        role,
         authGroupId: authGroupId || undefined,
+        // TODO: 백엔드 AdminAccountCreateRequest에 active 필드 추가 후 활성화 (after.md §7)
+        // active,
       }),
     onSuccess: () => {
-      toast.success('계정이 등록되었습니다.');
+      toast.success('저장되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
       handleCloseForm();
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '등록에 실패했습니다.');
+      toast.error(e instanceof ApiError ? e.message : '저장에 실패했습니다.');
     },
   });
 
@@ -130,50 +137,48 @@ export default function AccountsPage() {
     mutationFn: () =>
       adminAccountApi.update(editing!.id, {
         name: name.trim(),
-        email: email.trim() || undefined,
-        role,
         authGroupId: authGroupId || undefined,
         active,
       }),
     onSuccess: () => {
-      toast.success('수정되었습니다.');
+      toast.success('계정 정보가 수정되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
       handleCloseForm();
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '수정에 실패했습니다.');
+      toast.error(
+        e instanceof ApiError ? e.message : '계정 수정에 실패했습니다. 다시 시도해주세요.',
+      );
     },
   });
 
   const [deleteTarget, setDeleteTarget] = useState<AdminAccountResponse | null>(null);
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminAccountApi.remove(id),
-    onSuccess: () => {
+    onSuccess: (_data, deletedId) => {
       toast.success('삭제되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
-      if (deleteTarget?.id === editing?.id) handleCloseForm();
+      if (deletedId === editing?.id) handleCloseForm();
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '삭제에 실패했습니다.');
+      toast.error(
+        e instanceof ApiError ? e.message : '삭제에 실패했습니다. 다시 시도해주세요.',
+      );
     },
   });
 
   const handleSave = () => {
+    const nextErrors: typeof errors = {};
     if (!editing && !loginId.trim()) {
-      toast.error('아이디를 입력해주세요.');
-      return;
+      nextErrors.loginId = '아이디를 입력해주세요.';
     }
-    if (!name.trim()) {
-      toast.error('이름을 입력해주세요.');
-      return;
-    }
+    if (!name.trim()) nextErrors.name = '이름을 입력해주세요.';
+    if (!authGroupId) nextErrors.authGroupId = '권한을 선택해주세요.';
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     if (editing) updateMutation.mutate();
     else createMutation.mutate();
-  };
-
-  const applySearch = () => {
-    setKeyword(keywordInput.trim());
-    setPage(0);
   };
 
   const findGroup = (id?: string) =>
@@ -195,20 +200,11 @@ export default function AccountsPage() {
                 placeholder="아이디, 이름 검색..."
                 value={keywordInput}
                 onChange={(e) => setKeywordInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') applySearch();
-                }}
               />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Search className="w-4 h-4 text-gray-400" />
               </div>
             </div>
-            <Button
-              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-6"
-              onClick={applySearch}
-            >
-              검색
-            </Button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -248,7 +244,7 @@ export default function AccountsPage() {
                 <AdminTableHeaderRow>
                   <AdminTableHead className="px-6 py-4">아이디</AdminTableHead>
                   <AdminTableHead className="px-6 py-4">이름</AdminTableHead>
-                  <AdminTableHead className="px-6 py-4">권한</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4">권한 선택</AdminTableHead>
                   <AdminTableHead className="px-6 py-4 text-center">상태</AdminTableHead>
                   <AdminTableHead className="px-6 py-4 text-right">관리</AdminTableHead>
                 </AdminTableHeaderRow>
@@ -273,7 +269,9 @@ export default function AccountsPage() {
                 {!listLoading && !listError && accounts.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
-                      등록된 계정이 없습니다.
+                      {hasSearchCondition
+                        ? '검색 결과가 없습니다.'
+                        : '등록된 계정이 없습니다.'}
                     </td>
                   </tr>
                 )}
@@ -284,32 +282,29 @@ export default function AccountsPage() {
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{a.loginId}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{a.name}</td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
+                        {g ? (
                           <Badge
                             variant="secondary"
                             className="bg-[#eef1ff] text-[#1C2340] text-[11px] font-[600] leading-normal hover:bg-[#eef1ff]"
                           >
-                            {ROLE_LABELS[(a.role as AdminRole) || 'OPERATOR'] || a.role}
+                            {g.groupName}
                           </Badge>
-                          {g && (
-                            <span className="text-[12px] text-gray-500">{g.groupName}</span>
-                          )}
-                        </div>
+                        ) : (
+                          <span className="text-[12px] text-gray-400">-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center">
                           <Badge
                             variant="secondary"
-                            className={`font-semibold flex items-center gap-1.5 ${
-                              a.active
+                            className={`font-semibold flex items-center gap-1.5 ${a.active
                                 ? 'bg-[#D1FAE5] text-[#10B981] hover:bg-[#D1FAE5]'
                                 : 'bg-[#FEE2E2] text-[#EF4444] hover:bg-[#FEE2E2]'
-                            }`}
+                              }`}
                           >
                             <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                a.active ? 'bg-[#10B981]' : 'bg-[#EF4444]'
-                              }`}
+                              className={`w-1.5 h-1.5 rounded-full ${a.active ? 'bg-[#10B981]' : 'bg-[#EF4444]'
+                                }`}
                             />
                             {a.active ? '활성' : '비활성'}
                           </Badge>
@@ -343,11 +338,10 @@ export default function AccountsPage() {
                   key={p}
                   variant={p === page ? 'primary' : 'outline'}
                   size="icon"
-                  className={`w-8 h-8 p-0 ${
-                    p === page
+                  className={`w-8 h-8 p-0 ${p === page
                       ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent shadow-sm'
                       : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                  }`}
+                    }`}
                   onClick={() => setPage(p)}
                 >
                   {p + 1}
@@ -371,7 +365,7 @@ export default function AccountsPage() {
       {showForm && (
         <div
           key={editing?.id || 'new'}
-          className="w-[320px] bg-white rounded-lg border border-gray-200 shadow-sm p-[20px] flex flex-col shrink-0 self-start gap-[16px]"
+          className="w-[380px] bg-white rounded-[8px] border border-[#E4E4E7] shadow-sm p-[20px] flex flex-col shrink-0 self-start gap-[16px]"
         >
           <div className="flex justify-between items-center">
             <h3 className="font-bold text-lg text-gray-900">
@@ -385,73 +379,75 @@ export default function AccountsPage() {
           <div className="h-[1px] bg-[#E4E4E7] self-stretch" />
 
           <div className="flex flex-col gap-[8px]">
-            <label className="text-sm font-semibold text-gray-900">아이디</label>
+            <label className="text-sm font-semibold text-gray-900">
+              아이디 <span className="text-red-500">*</span>
+            </label>
             <Input
               type="text"
               placeholder="아이디를 입력해주세요"
               value={loginId}
-              onChange={(e) => setLoginId(e.target.value)}
+              onChange={(e) => {
+                setLoginId(e.target.value);
+                if (errors.loginId) setErrors((p) => ({ ...p, loginId: undefined }));
+              }}
               maxLength={50}
               disabled={!!editing}
-              className={`h-11 ${editing ? 'bg-gray-50 text-gray-500 border-gray-200' : 'border-blue-400 focus-visible:ring-[#4186FF] focus-visible:border-[#4186FF]'}`}
+              className={`h-11 ${
+                editing
+                  ? 'bg-gray-50 text-gray-500 border-gray-200'
+                  : errors.loginId
+                    ? 'border-red-400'
+                    : 'border-blue-400 focus-visible:ring-[#4186FF] focus-visible:border-[#4186FF]'
+              }`}
             />
+            {errors.loginId && (
+              <p className="text-[12px] text-red-500">{errors.loginId}</p>
+            )}
             {!editing && (
               <p className="text-[11px] text-gray-400">
-                생성 시 초기 비밀번호는 “0000”으로 자동 설정되며, 해당 계정의 첫 로그인 시 변경이 강제됩니다.
+                생성 시 초기 비밀번호는 “0000”으로 자동 설정되며, 해당 계정의 첫 로그인 시 변경할 수 있습니다.
               </p>
             )}
           </div>
 
           <div className="flex flex-col gap-[8px]">
-            <label className="text-sm font-semibold text-gray-900">이름</label>
+            <label className="text-sm font-semibold text-gray-900">
+              이름 <span className="text-red-500">*</span>
+            </label>
             <Input
               type="text"
               placeholder="이름을 입력해주세요"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+              }}
               maxLength={50}
-              className="h-11 border-gray-200"
+              className={`h-11 ${errors.name ? 'border-red-400' : 'border-gray-200'}`}
             />
+            {errors.name && (
+              <p className="text-[12px] text-red-500">{errors.name}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-[8px]">
-            <label className="text-sm font-semibold text-gray-900">이메일</label>
-            <Input
-              type="email"
-              placeholder="이메일을 입력해주세요"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              maxLength={100}
-              className="h-11 border-gray-200"
-            />
-          </div>
-
-          <div className="flex flex-col gap-[8px]">
-            <label className="text-sm font-semibold text-gray-900">역할</label>
-            <Select value={role} onValueChange={(v) => setRole(v as AdminRole)}>
-              <SelectTrigger className="h-11 border-gray-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SUPER">슈퍼 관리자 (SUPER)</SelectItem>
-                <SelectItem value="OPERATOR">운영자 (OPERATOR)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-[8px]">
-            <label className="text-sm font-semibold text-gray-900">권한 그룹</label>
+            <label className="text-sm font-semibold text-gray-900">
+              권한 선택 <span className="text-red-500">*</span>
+            </label>
             <Select
-              value={authGroupId || AUTH_GROUP_NONE}
-              onValueChange={(v) =>
-                setAuthGroupId(v === AUTH_GROUP_NONE ? '' : v)
-              }
+              value={authGroupId || undefined}
+              onValueChange={(v) => {
+                setAuthGroupId(v);
+                if (errors.authGroupId)
+                  setErrors((p) => ({ ...p, authGroupId: undefined }));
+              }}
             >
-              <SelectTrigger className="h-11 border-gray-200">
-                <SelectValue placeholder="없음" />
+              <SelectTrigger
+                className={`h-11 ${errors.authGroupId ? 'border-red-400' : 'border-gray-200'}`}
+              >
+                <SelectValue placeholder="선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={AUTH_GROUP_NONE}>없음</SelectItem>
                 {authGroups.map((g) => (
                   <SelectItem key={g.id} value={g.id}>
                     {g.groupName} ({g.groupCode})
@@ -459,31 +455,33 @@ export default function AccountsPage() {
                 ))}
               </SelectContent>
             </Select>
+            {errors.authGroupId && (
+              <p className="text-[12px] text-red-500">{errors.authGroupId}</p>
+            )}
           </div>
 
-          {editing && (
-            <div className="flex flex-col gap-[8px]">
-              <label className="text-sm font-semibold text-gray-900">활성화</label>
-              <Select
-                value={active ? 'ACTIVE' : 'INACTIVE'}
-                onValueChange={(v) => setActive(v === 'ACTIVE')}
-              >
-                <SelectTrigger className="h-11 border-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">활성</SelectItem>
-                  <SelectItem value="INACTIVE">비활성</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex flex-col gap-[16px]">
+            <label className="text-sm font-semibold text-gray-900">활성화</label>
+            <div className="flex items-center gap-[12px]">
+              <Switch checked={active} onCheckedChange={setActive} />
+              <span className="text-[13px] text-[#71717A]">
+                {active ? '계정이 활성화됩니다.' : '계정이 비활성화됩니다.'}
+              </span>
             </div>
-          )}
+          </div>
 
-          <div className="flex flex-col gap-[12px] mt-2">
+          <div className="flex flex-col gap-[16px]">
             <Button
-              disabled={createMutation.isPending || updateMutation.isPending}
+              disabled={
+                !isFormValid || createMutation.isPending || updateMutation.isPending
+              }
               onClick={handleSave}
-              className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10"
+              style={
+                !isFormValid || createMutation.isPending || updateMutation.isPending
+                  ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' }
+                  : undefined
+              }
+              className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 disabled:hover:bg-[#E4E4E7]"
             >
               {createMutation.isPending || updateMutation.isPending
                 ? '저장 중...'
@@ -504,14 +502,15 @@ export default function AccountsPage() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         title="계정을 삭제하시겠어요?"
-        description="삭제 후에는 복구할 수 없습니다."
+        description={'삭제 시 해당 계정은 더 이상 사용할 수 없습니다.'}
         variant="double"
         confirmText="삭제"
         cancelText="취소"
         confirmColor="red"
-        onConfirm={() => {
-          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
-          setDeleteTarget(null);
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          // 실패 시 ConfirmModal이 throw를 받아 모달 유지
+          await deleteMutation.mutateAsync(deleteTarget.id);
         }}
       />
     </div>

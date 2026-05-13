@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -54,6 +54,21 @@ export default function SuggestionsPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setContent(contentInput.trim());
+      setPage(0);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [contentInput]);
+
+  const hasSearchCondition =
+    content.length > 0 ||
+    status !== '' ||
+    categoryCode !== '' ||
+    startDate !== '' ||
+    endDate !== '';
+
   const { data: catData } = useQuery({
     queryKey: ['suggestion-categories-all'],
     queryFn: () =>
@@ -84,11 +99,6 @@ export default function SuggestionsPage() {
       ? categories.find((c) => c.code === codeOrId || c.id === codeOrId)
       : undefined;
 
-  const applySearch = () => {
-    setContent(contentInput.trim());
-    setPage(0);
-  };
-
   const handleDownloadJson = async () => {
     try {
       const blob = await suggestionApi.downloadJson({
@@ -106,9 +116,14 @@ export default function SuggestionsPage() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : '다운로드 실패');
+    } catch {
+      toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
     }
+  };
+
+  const handleDownloadImages = () => {
+    // 백엔드 ZIP 압축 엔드포인트 연동 후 활성화 — after.md 참고
+    toast.message('전체 IMAGE 다운로드는 준비 중입니다.');
   };
 
   return (
@@ -129,18 +144,8 @@ export default function SuggestionsPage() {
               placeholder="제안 내용 검색..."
               value={contentInput}
               onChange={(e) => setContentInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') applySearch();
-              }}
             />
           </div>
-
-          <Button
-            onClick={applySearch}
-            className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-5"
-          >
-            검색
-          </Button>
 
           <Select
             value={categoryCode || CATEGORY_ALL}
@@ -244,10 +249,29 @@ export default function SuggestionsPage() {
         <div className="flex items-center gap-3">
           <Button
             onClick={handleDownloadJson}
-            className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4"
+            disabled={records.length === 0}
+            style={
+              records.length === 0
+                ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' }
+                : undefined
+            }
+            className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4 disabled:hover:bg-[#E4E4E7]"
           >
             <Download className="w-4 h-4 mr-2" />
             전체 JSON 다운로드
+          </Button>
+          <Button
+            onClick={handleDownloadImages}
+            disabled={records.length === 0}
+            style={
+              records.length === 0
+                ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' }
+                : undefined
+            }
+            className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4 disabled:hover:bg-[#E4E4E7]"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            전체 IMAGE 다운로드
           </Button>
         </div>
       </div>
@@ -278,10 +302,10 @@ export default function SuggestionsPage() {
               <AdminTableHeaderRow>
                 <AdminTableHead className="px-6 py-4 w-24">이미지</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">디바이스 ID</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">카테고리</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">태그</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">상세 내용</AdminTableHead>
-                <AdminTableHead className="px-6 py-4 text-center">상태</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">제안 일시</AdminTableHead>
+                <AdminTableHead className="px-6 py-4 text-center">상태</AdminTableHead>
                 <AdminTableHead className="px-6 py-4 w-24 text-right">상세</AdminTableHead>
               </AdminTableHeaderRow>
             </thead>
@@ -303,7 +327,9 @@ export default function SuggestionsPage() {
               {!isLoading && !isError && records.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
-                    제안이 없습니다.
+                    {hasSearchCondition
+                      ? '검색 결과가 없습니다.'
+                      : '등록된 제안이 없습니다.'}
                   </td>
                 </tr>
               )}
@@ -338,6 +364,9 @@ export default function SuggestionsPage() {
                     <td className="px-6 py-4 text-sm text-gray-600 truncate max-w-[400px]">
                       {r.content}
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                      {formatDateTime(r.insDttm)}
+                    </td>
                     <td className="px-6 py-4 text-center">
                       <Badge
                         variant="secondary"
@@ -351,9 +380,6 @@ export default function SuggestionsPage() {
                       >
                         {SUGGESTION_STATUS_LABELS[statusKey] || r.status}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                      {formatDateTime(r.insDttm)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link href={`/suggestions/${r.id}`}>

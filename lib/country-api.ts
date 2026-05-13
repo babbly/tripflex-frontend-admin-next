@@ -8,6 +8,7 @@ import type {
   FlagUploadUrlResponse,
 } from '@/types/country';
 import type { PageResponse } from '@/types/api';
+import type { DisplayOrderUpdateRequest } from '@/types/country-currency-mapping';
 
 function toQuery(params: CountryListParams): string {
   const q = new URLSearchParams();
@@ -37,4 +38,6 @@ export const countryApi = {
       '/api/admin/countries/flag-upload-url',
       body,
     ),
+  updateSort: (body: DisplayOrderUpdateRequest) =>
+    adminApi.patch<void>('/api/admin/countries/sort', { items: body }),
 };

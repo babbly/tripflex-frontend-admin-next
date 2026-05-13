@@ -7,6 +7,7 @@ export type CountryResponse = {
   flagImagePath?: string;
   defaultLanguageCode?: string;
   defaultCurrencyCode?: string;
+  currencyIds?: string[];
   displayOrder: number;
   active: boolean;
   insDttm?: string;

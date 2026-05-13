@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Calendar,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Search,
@@ -34,12 +33,27 @@ function formatDateTime(iso?: string) {
 export default function ActivityLogPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
+  const [keywordInput, setKeywordInput] = useState('');
   const [keyword, setKeyword] = useState('');
   const [actionType, setActionType] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
   const size = parseInt(pageSize, 10);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setKeyword(keywordInput.trim());
+      setPage(0);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [keywordInput]);
+
+  const hasSearchCondition =
+    keyword.length > 0 ||
+    actionType !== '' ||
+    startDate !== '' ||
+    endDate !== '';
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: [
@@ -76,53 +90,39 @@ export default function ActivityLogPage() {
               type="text"
               className="pl-9 h-11 border-gray-200 bg-white text-[#18181B] placeholder:text-[#A1A1AA] rounded-[8px]"
               placeholder="작업자 및 대상자 검색"
-              value={keyword}
-              onChange={(e) => {
-                setKeyword(e.target.value);
-                setPage(0);
-              }}
+              value={keywordInput}
+              onChange={(e) => setKeywordInput(e.target.value)}
             />
           </div>
 
-          <div className="relative w-[180px]">
-            <select
-              className="w-full h-11 pl-4 pr-10 text-sm border border-gray-200 rounded-[8px] appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-[#4186FF] focus:border-[#4186FF] text-[#18181B]"
-              value={actionType}
-              onChange={(e) => {
-                setActionType(e.target.value);
-                setPage(0);
-              }}
-            >
-              <option value="">전체</option>
-              <optgroup label="계정 관리">
-                <option value="계정 생성">계정 생성</option>
-                <option value="계정 수정">계정 수정</option>
-                <option value="계정 삭제">계정 삭제</option>
-                <option value="권한 변경">권한 변경</option>
-              </optgroup>
-              <optgroup label="배너 관리">
-                <option value="배너 추가">배너 추가</option>
-                <option value="배너 수정">배너 수정</option>
-                <option value="배너 삭제">배너 삭제</option>
-              </optgroup>
-              <optgroup label="FAQ 관리">
-                <option value="FAQ 추가">FAQ 추가</option>
-                <option value="FAQ 수정">FAQ 수정</option>
-                <option value="FAQ 삭제">FAQ 삭제</option>
-              </optgroup>
-              <optgroup label="국가 관리">
-                <option value="국가 추가">국가 추가</option>
-                <option value="국가 수정">국가 수정</option>
-                <option value="국가 삭제">국가 삭제</option>
-              </optgroup>
-              <optgroup label="기타">
-                <option value="제안 확인">제안 확인</option>
-              </optgroup>
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </div>
-          </div>
+          <Select
+            value={actionType || '__ALL__'}
+            onValueChange={(v) => {
+              setActionType(v === '__ALL__' ? '' : v);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-[180px] h-11 text-sm border-gray-200 rounded-[8px] bg-white text-[#18181B]">
+              <SelectValue placeholder="작업 유형" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__ALL__">전체</SelectItem>
+              <SelectItem value="계정 생성">계정 생성</SelectItem>
+              <SelectItem value="계정 수정">계정 수정</SelectItem>
+              <SelectItem value="계정 삭제">계정 삭제</SelectItem>
+              <SelectItem value="권한 변경">권한 변경</SelectItem>
+              <SelectItem value="배너 추가">배너 추가</SelectItem>
+              <SelectItem value="배너 수정">배너 수정</SelectItem>
+              <SelectItem value="배너 삭제">배너 삭제</SelectItem>
+              <SelectItem value="FAQ 추가">FAQ 추가</SelectItem>
+              <SelectItem value="FAQ 수정">FAQ 수정</SelectItem>
+              <SelectItem value="FAQ 삭제">FAQ 삭제</SelectItem>
+              <SelectItem value="국가 추가">국가 추가</SelectItem>
+              <SelectItem value="국가 수정">국가 수정</SelectItem>
+              <SelectItem value="국가 삭제">국가 삭제</SelectItem>
+              <SelectItem value="제안 확인">제안 확인</SelectItem>
+            </SelectContent>
+          </Select>
 
           <div className="flex items-center gap-2">
             <div className="relative w-[180px]">
@@ -245,7 +245,9 @@ export default function ActivityLogPage() {
               {!isLoading && !isError && logs.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
-                    조회된 로그가 없습니다.
+                    {hasSearchCondition
+                      ? '검색 결과가 없습니다.'
+                      : '로그 데이터가 없습니다.'}
                   </td>
                 </tr>
               )}

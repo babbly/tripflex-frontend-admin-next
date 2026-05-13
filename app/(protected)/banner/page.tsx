@@ -28,6 +28,7 @@ import {
   ChevronRight,
   Edit2,
   GripVertical,
+  ImageOff,
   Plus,
   Search,
   Trash2,
@@ -47,6 +48,7 @@ import {
   AdminTableHead,
   AdminTableHeaderRow,
 } from '@/components/ui/admin-table';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { bannerApi } from '@/lib/banner-api';
 import {
   BANNER_POSITION_LABELS,
@@ -82,6 +84,10 @@ function SortableTableRow({ banner, onToggle, onDelete, onEdit }: RowProps) {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => {
+    setImageFailed(false);
+  }, [banner.imageUrl]);
 
   return (
     <tr
@@ -99,8 +105,8 @@ function SortableTableRow({ banner, onToggle, onDelete, onEdit }: RowProps) {
         </button>
       </td>
       <td className="p-4">
-        <div className="w-24 h-16 bg-gray-200 rounded-md overflow-hidden relative">
-          {banner.imageUrl ? (
+        <div className="w-24 h-16 bg-gray-200 rounded-md overflow-hidden relative flex items-center justify-center">
+          {banner.imageUrl && !imageFailed ? (
             <Image
               src={banner.imageUrl}
               alt={banner.title}
@@ -108,8 +114,11 @@ function SortableTableRow({ banner, onToggle, onDelete, onEdit }: RowProps) {
               className="object-cover"
               sizes="96px"
               unoptimized
+              onError={() => setImageFailed(true)}
             />
-          ) : null}
+          ) : (
+            <ImageOff className="w-5 h-5 text-gray-400" aria-label="이미지를 불러올 수 없습니다" />
+          )}
         </div>
       </td>
       <td className="p-4">
@@ -155,15 +164,22 @@ export default function BannerPage() {
 
   const [activeTab, setActiveTab] = useState<BannerTab>('TOP');
   const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
+    return () => clearTimeout(t);
+  }, [keyword]);
+
   const isEnded = activeTab === 'ENDED';
   const FETCH_SIZE = 500;
+  const hasSearchCondition = Boolean(debouncedKeyword || startDate || endDate);
 
   const queryKey = useMemo(
-    () => ['banners', { activeTab, keyword, startDate, endDate }],
-    [activeTab, keyword, startDate, endDate],
+    () => ['banners', { activeTab, keyword: debouncedKeyword, startDate, endDate }],
+    [activeTab, debouncedKeyword, startDate, endDate],
   );
 
   const { data, isLoading, isError, error } = useQuery({
@@ -175,7 +191,7 @@ export default function BannerPage() {
               page: 0,
               size: FETCH_SIZE,
               expiredOnly: true,
-              keyword: keyword || undefined,
+              keyword: debouncedKeyword || undefined,
               startDate: startDate || undefined,
               endDate: endDate || undefined,
             }
@@ -183,7 +199,7 @@ export default function BannerPage() {
               position: activeTab as BannerPosition,
               page: 0,
               size: FETCH_SIZE,
-              keyword: keyword || undefined,
+              keyword: debouncedKeyword || undefined,
               startDate: startDate || undefined,
               endDate: endDate || undefined,
             },
@@ -246,6 +262,7 @@ export default function BannerPage() {
   const handleTabChange = (next: BannerTab) => {
     setActiveTab(next);
     setKeyword('');
+    setDebouncedKeyword('');
     setStartDate('');
     setEndDate('');
   };
@@ -274,9 +291,9 @@ export default function BannerPage() {
     reorderMutation.mutate(payload);
   };
 
+  const [deleteTarget, setDeleteTarget] = useState<BannerResponse | null>(null);
   const handleDelete = (b: BannerResponse) => {
-    if (!confirm(`"${b.title}" 배너를 삭제하시겠습니까?`)) return;
-    deleteMutation.mutate(b.id);
+    setDeleteTarget(b);
   };
 
   return (
@@ -313,7 +330,7 @@ export default function BannerPage() {
             <input
               type="text"
               className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]"
-              placeholder="배너 문구 검색"
+              placeholder="배너 문구 검색..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
@@ -418,9 +435,11 @@ export default function BannerPage() {
                   {!isLoading && !isError && banners.length === 0 && (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
-                        {isEnded
-                          ? '종료된 배너가 없습니다.'
-                          : '등록된 배너가 없습니다.'}
+                        {hasSearchCondition
+                          ? '검색 결과가 없습니다.'
+                          : isEnded
+                            ? '종료된 배너가 없습니다.'
+                            : '등록된 배너가 없습니다.'}
                       </td>
                     </tr>
                   )}
@@ -484,6 +503,19 @@ export default function BannerPage() {
           )} */}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="배너를 삭제하시겠어요?"
+        description={'삭제 후에는 복구할 수 없습니다.\n해당 배너가 앱에서 즉시 노출 중단됩니다.'}
+        cancelText="취소"
+        confirmText="삭제"
+        confirmColor="red"
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+        }}
+      />
     </div>
   );
 }

@@ -9,7 +9,8 @@ import { adminAuthApi } from '@/lib/admin-api';
 import { ApiError } from '@/types/api';
 import { useAdminAuth } from '@/providers/admin-auth-provider';
 
-const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+const PASSWORD_PATTERN =
+  /^(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]).{8,}$/;
 
 type PasswordFieldProps = {
   value: string;
@@ -122,12 +123,12 @@ export function ChangePasswordModal({ open }: { open: boolean }) {
               <PasswordField
                 value={newPassword}
                 onChange={setNewPassword}
-                placeholder="8자 이상, 영문과 숫자 조합"
+                placeholder="8자 이상, 숫자와 특수문자 조합"
                 autoComplete="new-password"
               />
               {newPassword.length > 0 && !newValid && (
                 <p className="text-[11px] text-red-500">
-                  8자 이상, 영문과 숫자를 모두 포함해야 합니다.
+                  8자 이상, 숫자와 특수문자를 모두 포함해야 합니다.
                 </p>
               )}
             </div>

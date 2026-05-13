@@ -6,6 +6,7 @@ import type {
   LanguageUpdateRequest,
 } from '@/types/language';
 import type { PageResponse } from '@/types/api';
+import type { DisplayOrderUpdateRequest } from '@/types/country-currency-mapping';
 
 function toQuery(params: LanguageListParams): string {
   const q = new URLSearchParams();
@@ -30,4 +31,6 @@ export const languageApi = {
     adminApi.patch<LanguageResponse>(`/api/admin/languages/${id}`, body),
   remove: (id: string) =>
     adminApi.delete<void>(`/api/admin/languages/${id}`),
+  updateSort: (body: DisplayOrderUpdateRequest) =>
+    adminApi.patch<void>('/api/admin/languages/sort', { items: body }),
 };

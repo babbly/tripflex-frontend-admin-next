@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { faqApi } from '@/lib/faq-api';
 import { FAQ_LOCALES, FAQ_LOCALE_LABELS } from '@/types/faq';
 import { ApiError } from '@/types/api';
@@ -43,10 +44,22 @@ export default function FAQCreatePage() {
   const [locale, setLocale] = useState<string>('ko');
   const [question, setQuestion] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [answerText, setAnswerText] = useState('');
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastRange = useRef<Range | null>(null);
+
+  const isFormValid =
+    category.trim().length > 0 &&
+    question.trim().length > 0 &&
+    answerText.trim().length > 0;
+
+  const hasDirtyInput =
+    category.trim().length > 0 ||
+    question.trim().length > 0 ||
+    answerText.trim().length > 0;
 
   const saveSelection = () => {
     const sel = window.getSelection();
@@ -157,29 +170,25 @@ export default function FAQCreatePage() {
       });
     },
     onSuccess: () => {
-      toast.success('FAQ가 등록되었습니다.');
+      toast.success('저장되었습니다.');
       router.replace('/faq');
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '등록에 실패했습니다.');
+      toast.error(e instanceof ApiError ? e.message : '저장에 실패했습니다.');
     },
   });
 
   const handleSave = () => {
-    if (!category.trim()) {
-      toast.error('카테고리를 입력해주세요.');
-      return;
-    }
-    if (!question.trim()) {
-      toast.error('질문을 입력해주세요.');
-      return;
-    }
-    const answerHtml = editorRef.current?.innerHTML ?? '';
-    if (!answerHtml || answerHtml.replace(/<[^>]+>/g, '').trim() === '') {
-      toast.error('답변을 입력해주세요.');
-      return;
-    }
+    if (!isFormValid || createMutation.isPending) return;
     createMutation.mutate();
+  };
+
+  const handleCancel = () => {
+    if (hasDirtyInput) {
+      setCancelOpen(true);
+      return;
+    }
+    router.push('/faq');
   };
 
   return (
@@ -209,13 +218,18 @@ export default function FAQCreatePage() {
           <Button
             variant="outline"
             className="h-[44px] px-6 border-[#E4E4E7] text-[#18181B] font-[600] rounded-[6px] bg-white hover:bg-gray-50"
-            onClick={() => router.push('/faq')}
+            onClick={handleCancel}
           >
             취소
           </Button>
           <Button
-            disabled={createMutation.isPending}
-            className="bg-[#4186FF] hover:bg-blue-600 text-white font-[600] h-[44px] px-6 rounded-[6px] flex items-center gap-2 shadow-sm"
+            disabled={!isFormValid || createMutation.isPending}
+            style={
+              !isFormValid || createMutation.isPending
+                ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' }
+                : undefined
+            }
+            className="bg-[#4186FF] hover:bg-blue-600 text-white font-[600] h-[44px] px-6 rounded-[6px] flex items-center gap-2 shadow-sm disabled:hover:bg-[#E4E4E7]"
             onClick={handleSave}
           >
             <Check className="w-4 h-4" />
@@ -378,6 +392,12 @@ export default function FAQCreatePage() {
               onMouseUp={saveSelection}
               onKeyUp={saveSelection}
               onBlur={saveSelection}
+              onInput={(e) => {
+                const el = e.currentTarget;
+                const plain = el.innerText.replace(/ /g, '').trim();
+                setAnswerText(plain);
+                saveSelection();
+              }}
               className="faq-editor min-h-[400px] p-8 outline-none text-[16px] text-[#3F3F46] leading-relaxed bg-white focus:ring-0"
               style={{ fontFamily: 'inherit' }}
             />
@@ -392,6 +412,19 @@ export default function FAQCreatePage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+        title="작성 중인 내용이 있습니다."
+        description={'취소하시겠습니까?'}
+        cancelText="취소"
+        confirmText="확인"
+        confirmColor="blue"
+        onConfirm={() => {
+          router.push('/faq');
+        }}
+      />
     </div>
   );
 }

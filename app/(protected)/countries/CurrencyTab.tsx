@@ -3,7 +3,24 @@
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { GripVertical, Plus } from 'lucide-react';
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -13,19 +30,64 @@ import {
   AdminTableHead,
   AdminTableHeaderRow,
 } from '@/components/ui/admin-table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { currencyApi } from '@/lib/currency-api';
 import { countryApi } from '@/lib/country-api';
+import { countryCurrencyMappingApi } from '@/lib/country-currency-mapping-api';
 import { CurrencyResponse } from '@/types/currency';
 import { ApiError } from '@/types/api';
 
-const COUNTRY_PICK_NONE = '__NONE__';
+const CURRENCY_CODE_PATTERN = /^[A-Z]{3}$/;
+
+type CurrencyRowProps = {
+  currency: CurrencyResponse;
+  onEdit: (c: CurrencyResponse) => void;
+  onDelete: (c: CurrencyResponse) => void;
+};
+
+function SortableCurrencyRow({ currency, onEdit, onDelete }: CurrencyRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: currency.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className="hover:bg-gray-50 transition-colors bg-white"
+    >
+      <td className="px-4 py-4 w-[60px] text-center">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
+          aria-label="순서 변경"
+        >
+          <GripVertical className="w-5 h-5" />
+        </button>
+      </td>
+      <td className="px-6 py-4">
+        <span className="text-[14px] font-medium text-gray-900">
+          {currency.nameKo}
+        </span>
+        {!currency.active && (
+          <span className="ml-2 text-[11px] font-[600] px-2 py-0.5 rounded bg-gray-100 text-gray-500">
+            비활성
+          </span>
+        )}
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center justify-end gap-2">
+          <EditButton onClick={() => onEdit(currency)} />
+          <DeleteButton onClick={() => onDelete(currency)} />
+        </div>
+      </td>
+    </tr>
+  );
+}
 
 export default function CurrencyTab() {
   const queryClient = useQueryClient();
@@ -47,7 +109,41 @@ export default function CurrencyTab() {
   });
   const allCountries = countryData?.content ?? [];
 
-  const currencies = data?.content ?? [];
+  const [localOrder, setLocalOrder] = useState<CurrencyResponse[] | null>(null);
+  useEffect(() => {
+    setLocalOrder(null);
+  }, [data]);
+  const currencies = localOrder ?? data?.content ?? [];
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const reorderMutation = useMutation({
+    mutationFn: (items: { id: string; displayOrder: number }[]) =>
+      currencyApi.updateSort(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currencies'] });
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : '순서 변경에 실패했습니다.');
+      setLocalOrder(null);
+    },
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = currencies.findIndex((c) => c.id === active.id);
+    const newIndex = currencies.findIndex((c) => c.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(currencies, oldIndex, newIndex);
+    setLocalOrder(reordered);
+    reorderMutation.mutate(
+      reordered.map((c, idx) => ({ id: c.id, displayOrder: idx })),
+    );
+  };
 
   const [editing, setEditing] = useState<CurrencyResponse | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -57,18 +153,20 @@ export default function CurrencyTab() {
   const [nameEn, setNameEn] = useState('');
   const [symbol, setSymbol] = useState('');
   const [decimalPlaces, setDecimalPlaces] = useState(0);
-  const [countryId, setCountryId] = useState<string>('');
+  const [selectedCountryIds, setSelectedCountryIds] = useState<string[]>([]);
   const [displayOrder, setDisplayOrder] = useState(0);
   const [active, setActive] = useState(true);
+
+  const [currencyCodeError, setCurrencyCodeError] = useState<string>('');
 
   useEffect(() => {
     if (editing) {
       setCurrencyCode(editing.currencyCode);
       setNameKo(editing.nameKo);
-      setNameEn(editing.nameEn);
+      setNameEn(editing.nameEn ?? '');
       setSymbol(editing.symbol);
       setDecimalPlaces(editing.decimalPlaces ?? 0);
-      setCountryId(editing.countryId ?? '');
+      setSelectedCountryIds(editing.countryIds ?? []);
       setDisplayOrder(editing.displayOrder ?? 0);
       setActive(editing.active);
     } else {
@@ -77,28 +175,55 @@ export default function CurrencyTab() {
       setNameEn('');
       setSymbol('');
       setDecimalPlaces(0);
-      setCountryId('');
+      setSelectedCountryIds([]);
       setDisplayOrder(0);
       setActive(true);
     }
+    setCurrencyCodeError('');
   }, [editing]);
 
+  const syncMappings = async (
+    currencyId: string,
+    nextCountryIds: string[],
+    prevCountryIds: string[],
+  ) => {
+    const toAdd = nextCountryIds.filter((id) => !prevCountryIds.includes(id));
+    const toRemove = prevCountryIds.filter((id) => !nextCountryIds.includes(id));
+
+    if (toRemove.length > 0) {
+      const mappings = await countryCurrencyMappingApi.list({ currencyId });
+      const removeIds = mappings
+        .filter((m) => toRemove.includes(m.countryId))
+        .map((m) => m.id);
+      await Promise.all(removeIds.map((id) => countryCurrencyMappingApi.remove(id)));
+    }
+    await Promise.all(
+      toAdd.map((countryId) =>
+        countryCurrencyMappingApi.create({ countryId, currencyId }),
+      ),
+    );
+  };
+
   const createMutation = useMutation({
-    mutationFn: () =>
-      currencyApi.create({
+    mutationFn: async () => {
+      const created = await currencyApi.create({
         currencyCode: currencyCode.trim().toUpperCase(),
         nameKo: nameKo.trim(),
-        // API는 nameEn 필수. UI엔 없으므로 입력값(편집 시 서버값)이 있으면 쓰고, 없으면 nameKo로 폴백.
-        nameEn: nameEn.trim() || nameKo.trim(),
+        nameEn: nameEn.trim() || undefined,
         symbol: symbol.trim(),
         decimalPlaces,
-        countryId: countryId || undefined,
         displayOrder,
         active,
-      }),
+      });
+      if (selectedCountryIds.length > 0) {
+        await syncMappings(created.id, selectedCountryIds, []);
+      }
+      return created;
+    },
     onSuccess: () => {
       toast.success('등록되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['currencies'] });
+      queryClient.invalidateQueries({ queryKey: ['countries'] });
       setShowForm(false);
       setEditing(null);
     },
@@ -108,20 +233,26 @@ export default function CurrencyTab() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: () =>
-      currencyApi.update(editing!.id, {
+    mutationFn: async () => {
+      const updated = await currencyApi.update(editing!.id, {
         nameKo: nameKo.trim(),
-        // API는 nameEn 필수. UI엔 없으므로 입력값(편집 시 서버값)이 있으면 쓰고, 없으면 nameKo로 폴백.
-        nameEn: nameEn.trim() || nameKo.trim(),
+        nameEn: nameEn.trim() || undefined,
         symbol: symbol.trim(),
         decimalPlaces,
-        countryId: countryId || undefined,
         displayOrder,
         active,
-      }),
+      });
+      await syncMappings(
+        editing!.id,
+        selectedCountryIds,
+        editing!.countryIds ?? [],
+      );
+      return updated;
+    },
     onSuccess: () => {
       toast.success('수정되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['currencies'] });
+      queryClient.invalidateQueries({ queryKey: ['countries'] });
       setShowForm(false);
       setEditing(null);
     },
@@ -144,18 +275,23 @@ export default function CurrencyTab() {
   const [deleteTarget, setDeleteTarget] = useState<CurrencyResponse | null>(null);
 
   const handleSave = () => {
-    if (!editing && !currencyCode.trim()) {
-      toast.error('통화 코드를 입력해주세요.');
-      return;
-    }
-    if (!nameKo.trim() || !nameEn.trim()) {
-      toast.error('한글명과 영문명을 모두 입력해주세요.');
+    if (!nameKo.trim()) {
+      toast.error('통화명을 입력해주세요.');
       return;
     }
     if (!symbol.trim()) {
       toast.error('통화 기호를 입력해주세요.');
       return;
     }
+    if (!currencyCode) {
+      setCurrencyCodeError('통화코드를 입력해주세요.');
+      return;
+    }
+    if (!CURRENCY_CODE_PATTERN.test(currencyCode)) {
+      setCurrencyCodeError('올바른 통화코드를 입력해주세요.');
+      return;
+    }
+    setCurrencyCodeError('');
     if (editing) updateMutation.mutate();
     else createMutation.mutate();
   };
@@ -196,60 +332,64 @@ export default function CurrencyTab() {
               </SelectContent>
             </Select>
           </div> */}
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <AdminTableHeaderRow>
-                <AdminTableHead className="px-6 py-4">통화명</AdminTableHead>
-                <AdminTableHead className="px-6 py-4 text-right w-[120px]">관리</AdminTableHead>
-              </AdminTableHeaderRow>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {isLoading && (
-                <tr>
-                  <td colSpan={2} className="px-6 py-8 text-center text-sm text-gray-500">
-                    불러오는 중...
-                  </td>
-                </tr>
-              )}
-              {isError && !isLoading && (
-                <tr>
-                  <td colSpan={2} className="px-6 py-8 text-center text-sm text-red-500">
-                    {error instanceof ApiError ? error.message : '목록을 불러오지 못했습니다.'}
-                  </td>
-                </tr>
-              )}
-              {!isLoading && !isError && currencies.length === 0 && (
-                <tr>
-                  <td colSpan={2} className="px-6 py-8 text-center text-sm text-gray-500">
-                    등록된 통화가 없습니다.
-                  </td>
-                </tr>
-              )}
-              {currencies.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="text-[14px] font-medium text-gray-900">{c.nameKo}</span>
-                    {!c.active && (
-                      <span className="ml-2 text-[11px] font-[600] px-2 py-0.5 rounded bg-gray-100 text-gray-500">
-                        비활성
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <EditButton
-                        onClick={() => {
-                          setEditing(c);
-                          setShowForm(true);
-                        }}
-                      />
-                      <DeleteButton onClick={() => setDeleteTarget(c)} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <AdminTableHeaderRow>
+                  <AdminTableHead className="px-4 py-4 w-[60px] text-center">
+                    순서
+                  </AdminTableHead>
+                  <AdminTableHead className="px-6 py-4">통화명</AdminTableHead>
+                  <AdminTableHead className="px-6 py-4 text-right w-[120px]">
+                    관리
+                  </AdminTableHead>
+                </AdminTableHeaderRow>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {isLoading && (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-500">
+                      불러오는 중...
+                    </td>
+                  </tr>
+                )}
+                {isError && !isLoading && (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-8 text-center text-sm text-red-500">
+                      {error instanceof ApiError ? error.message : '목록을 불러오지 못했습니다.'}
+                    </td>
+                  </tr>
+                )}
+                {!isLoading && !isError && currencies.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-500">
+                      등록된 통화가 없습니다.
+                    </td>
+                  </tr>
+                )}
+                <SortableContext
+                  items={currencies.map((c) => c.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {currencies.map((c) => (
+                    <SortableCurrencyRow
+                      key={c.id}
+                      currency={c}
+                      onEdit={(target) => {
+                        setEditing(target);
+                        setShowForm(true);
+                      }}
+                      onDelete={(target) => setDeleteTarget(target)}
+                    />
+                  ))}
+                </SortableContext>
+              </tbody>
+            </table>
+          </DndContext>
           {/* 페이지네이션 — 순서 변경 기능 적용 후 다시 살릴 예정. */}
           {/* {totalPages > 0 && (
             <div className="flex justify-end p-4 items-center gap-1 bg-white border-t border-gray-100">
@@ -330,34 +470,54 @@ export default function CurrencyTab() {
                 <Input
                   placeholder="통화코드를 입력해주세요"
                   value={currencyCode}
-                  onChange={(e) => setCurrencyCode(e.target.value)}
-                  maxLength={5}
-                  disabled={!!editing}
-                  className={`border-gray-200 h-11 ${editing ? 'bg-gray-50 text-gray-500' : ''}`}
+                  onChange={(e) => {
+                    setCurrencyCode(e.target.value.toUpperCase().slice(0, 3));
+                    if (currencyCodeError) setCurrencyCodeError('');
+                  }}
+                  maxLength={3}
+                  className={`border-gray-200 h-11 ${currencyCodeError ? 'border-red-400' : ''}`}
                 />
+                {currencyCodeError && (
+                  <p className="text-[12px] text-red-500">{currencyCodeError}</p>
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[14px] font-semibold text-gray-900">
-                  국가 선택
+                  사용 국가 (복수 선택)
                 </label>
-                <Select
-                  value={countryId || COUNTRY_PICK_NONE}
-                  onValueChange={(v) =>
-                    setCountryId(v === COUNTRY_PICK_NONE ? '' : v)
-                  }
-                >
-                  <SelectTrigger className="h-11 border-gray-200">
-                    <SelectValue placeholder="국가를 선택해주세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={COUNTRY_PICK_NONE}>없음</SelectItem>
-                    {allCountries.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.nameKo}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="border border-gray-200 rounded-md max-h-[200px] overflow-y-auto p-2">
+                  {allCountries.length === 0 ? (
+                    <p className="text-[12px] text-gray-400 px-2 py-1">
+                      등록된 국가가 없습니다.
+                    </p>
+                  ) : (
+                    allCountries.map((c) => {
+                      const checked = selectedCountryIds.includes(c.id);
+                      return (
+                        <label
+                          key={c.id}
+                          className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) => {
+                              if (v) {
+                                setSelectedCountryIds((prev) => [...prev, c.id]);
+                              } else {
+                                setSelectedCountryIds((prev) =>
+                                  prev.filter((id) => id !== c.id),
+                                );
+                              }
+                            }}
+                          />
+                          <span className="text-[13px] text-gray-700">
+                            {c.nameKo}
+                          </span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex flex-col gap-3 mt-4">

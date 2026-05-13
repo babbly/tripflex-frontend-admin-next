@@ -6,6 +6,7 @@ import type {
   CurrencyUpdateRequest,
 } from '@/types/currency';
 import type { PageResponse } from '@/types/api';
+import type { DisplayOrderUpdateRequest } from '@/types/country-currency-mapping';
 
 function toQuery(params: CurrencyListParams): string {
   const q = new URLSearchParams();
@@ -30,4 +31,6 @@ export const currencyApi = {
     adminApi.patch<CurrencyResponse>(`/api/admin/currencies/${id}`, body),
   remove: (id: string) =>
     adminApi.delete<void>(`/api/admin/currencies/${id}`),
+  updateSort: (body: DisplayOrderUpdateRequest) =>
+    adminApi.patch<void>('/api/admin/currencies/sort', { items: body }),
 };

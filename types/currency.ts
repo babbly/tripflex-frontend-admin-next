@@ -2,10 +2,10 @@ export type CurrencyResponse = {
   id: string;
   currencyCode: string;
   nameKo: string;
-  nameEn: string;
+  nameEn?: string;
   symbol: string;
   decimalPlaces?: number;
-  countryId?: string;
+  countryIds?: string[];
   displayOrder: number;
   active: boolean;
   insDttm?: string;
@@ -15,20 +15,18 @@ export type CurrencyResponse = {
 export type CurrencyCreateRequest = {
   currencyCode: string;
   nameKo: string;
-  nameEn: string;
+  nameEn?: string;
   symbol: string;
   decimalPlaces?: number;
-  countryId?: string;
   displayOrder?: number;
   active?: boolean;
 };
 
 export type CurrencyUpdateRequest = {
   nameKo: string;
-  nameEn: string;
+  nameEn?: string;
   symbol: string;
   decimalPlaces?: number;
-  countryId?: string;
   displayOrder?: number;
   active?: boolean;
 };

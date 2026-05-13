@@ -113,6 +113,7 @@ export default function PermissionsPage() {
   const [description, setDescription] = useState('');
   const [active, setActive] = useState(true);
   const [perms, setPerms] = useState<PermissionState>({});
+  const [groupNameError, setGroupNameError] = useState('');
 
   const { data: detailData } = useQuery({
     queryKey: ['auth-group', editingId],
@@ -134,7 +135,10 @@ export default function PermissionsPage() {
       setActive(true);
       setPerms(buildPermissionState(menus ?? []));
     }
+    setGroupNameError('');
   }, [editingId, detailData, menus]);
+
+  const isFormValid = groupName.trim().length > 0;
 
   const handleAdd = () => {
     setEditingId(null);
@@ -174,12 +178,12 @@ export default function PermissionsPage() {
       });
     },
     onSuccess: () => {
-      toast.success('등록되었습니다.');
+      toast.success('저장되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['auth-groups'] });
       handleCloseForm();
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '등록에 실패했습니다.');
+      toast.error(e instanceof ApiError ? e.message : '저장에 실패했습니다.');
     },
   });
 
@@ -192,13 +196,15 @@ export default function PermissionsPage() {
         menuPermissions: buildMenuPermissionsPayload(),
       }),
     onSuccess: () => {
-      toast.success('수정되었습니다.');
+      toast.success('권한이 수정되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['auth-groups'] });
       queryClient.invalidateQueries({ queryKey: ['auth-group', editingId] });
       handleCloseForm();
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '수정에 실패했습니다.');
+      toast.error(
+        e instanceof ApiError ? e.message : '권한 수정에 실패했습니다. 다시 시도해주세요.',
+      );
     },
   });
 
@@ -216,32 +222,49 @@ export default function PermissionsPage() {
   });
 
   const handleSave = () => {
-    if (!editingId && !groupCode.trim()) {
-      toast.error('그룹 코드를 입력해주세요.');
-      return;
-    }
     if (!groupName.trim()) {
-      toast.error('그룹명을 입력해주세요.');
+      setGroupNameError('권한명을 입력해주세요.');
       return;
     }
+    setGroupNameError('');
     if (editingId) updateMutation.mutate();
     else createMutation.mutate();
   };
 
+  // 권한 자동 의존성:
+  // - 쓰기 선택 시 읽기 자동 포함
+  // - 삭제 선택 시 읽기 + 쓰기 자동 포함
+  // - 읽기 해제 시 쓰기/삭제 자동 해제
+  // - 쓰기 해제 시 삭제 자동 해제
   const togglePerm = (
     menuId: string,
     field: 'canRead' | 'canWrite' | 'canDelete',
     next: boolean,
   ) => {
-    setPerms((prev) => ({
-      ...prev,
-      [menuId]: {
-        canRead: prev[menuId]?.canRead ?? false,
-        canWrite: prev[menuId]?.canWrite ?? false,
-        canDelete: prev[menuId]?.canDelete ?? false,
-        [field]: next,
-      },
-    }));
+    setPerms((prev) => {
+      const cur = prev[menuId] ?? {
+        canRead: false,
+        canWrite: false,
+        canDelete: false,
+      };
+      const updated = { ...cur, [field]: next };
+      if (next) {
+        if (field === 'canWrite') updated.canRead = true;
+        if (field === 'canDelete') {
+          updated.canRead = true;
+          updated.canWrite = true;
+        }
+      } else {
+        if (field === 'canRead') {
+          updated.canWrite = false;
+          updated.canDelete = false;
+        }
+        if (field === 'canWrite') {
+          updated.canDelete = false;
+        }
+      }
+      return { ...prev, [menuId]: updated };
+    });
   };
 
   const renderMenuIcon = (menu: AdminMenuResponse) => {
@@ -322,7 +345,6 @@ export default function PermissionsPage() {
                   <tr key={g.id} className="bg-white hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="font-medium text-gray-900">{g.groupName}</span>
-                      <span className="ml-2 text-[12px] text-gray-400">{g.groupCode}</span>
                       {!g.active && (
                         <span className="ml-2 text-[11px] font-[600] px-2 py-0.5 rounded bg-gray-100 text-gray-500">
                           비활성
@@ -417,11 +439,17 @@ export default function PermissionsPage() {
               </Label>
               <Input
                 value={groupName}
-                onChange={(e) => setGroupName(e.target.value)}
+                onChange={(e) => {
+                  setGroupName(e.target.value);
+                  if (groupNameError) setGroupNameError('');
+                }}
                 placeholder="권한명을 입력해주세요"
                 maxLength={100}
-                className="h-11"
+                className={`h-11 ${groupNameError ? 'border-red-400' : ''}`}
               />
+              {groupNameError && (
+                <p className="text-[12px] text-red-500">{groupNameError}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -502,9 +530,16 @@ export default function PermissionsPage() {
 
             <div className="pt-4 flex flex-col space-y-2">
               <Button
-                disabled={createMutation.isPending || updateMutation.isPending}
+                disabled={
+                  !isFormValid || createMutation.isPending || updateMutation.isPending
+                }
                 onClick={handleSave}
-                className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-11"
+                style={
+                  !isFormValid || createMutation.isPending || updateMutation.isPending
+                    ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' }
+                    : undefined
+                }
+                className="w-full bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-11 disabled:hover:bg-[#E4E4E7]"
               >
                 {createMutation.isPending || updateMutation.isPending
                   ? '저장 중...'

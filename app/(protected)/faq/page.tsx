@@ -68,7 +68,9 @@ export default function FAQPage() {
       queryClient.invalidateQueries({ queryKey: ['faqs'] });
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '삭제에 실패했습니다.');
+      toast.error(
+        e instanceof ApiError ? e.message : '삭제에 실패했습니다. 다시 시도해주세요.',
+      );
     },
   });
 
@@ -292,9 +294,10 @@ export default function FAQPage() {
         confirmText="삭제"
         cancelText="취소"
         confirmColor="red"
-        onConfirm={() => {
-          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
-          setDeleteTarget(null);
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          // 실패 시 ConfirmModal이 모달을 유지하도록 throw — onClose는 ConfirmModal에서 성공 시에만 호출
+          await deleteMutation.mutateAsync(deleteTarget.id);
         }}
       />
 

@@ -11,7 +11,7 @@ interface ConfirmModalProps {
   variant?: 'single' | 'double';
   confirmText?: string;
   cancelText?: string;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<unknown>;
   confirmColor?: 'blue' | 'red';
 }
 
@@ -28,10 +28,15 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   const actualConfirmColor = confirmColor || (variant === 'single' ? 'blue' : 'red');
 
-  const handleConfirm = (e: React.MouseEvent) => {
+  // onConfirm이 throw하거나 reject되면 모달 유지. 정상 종료 시에만 onClose 호출.
+  const handleConfirm = async (e: React.MouseEvent) => {
     e.preventDefault();
-    onConfirm();
-    onClose();
+    try {
+      await onConfirm();
+      onClose();
+    } catch {
+      /* 모달 유지 — 호출 측에서 toast 등으로 에러 안내 */
+    }
   };
 
   return (
@@ -56,7 +61,7 @@ export function ConfirmModal({
             </AlertDialogPrimitive.Title>
             {description && (
               <AlertDialogPrimitive.Description
-                className="w-full h-[65px] flex items-center justify-center font-normal not-italic text-[#091D32] text-center text-[13px] leading-[20px]"
+                className="w-full h-[65px] flex items-center justify-center font-normal not-italic text-[#091D32] text-center text-[13px] leading-[20px] whitespace-pre-line"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {description}

@@ -11,6 +11,7 @@ export type BannerResponse = {
   id: string;
   title: string;
   subtitle?: string;
+  tag?: string;
   imageUrl: string;
   imagePath?: string;
   linkUrl?: string;
@@ -27,6 +28,7 @@ export type BannerCreateRequest = {
   title: string;
   imageUrl: string;
   subtitle?: string;
+  tag?: string;
   imagePath?: string;
   linkUrl?: string;
   position?: BannerPosition;
