@@ -1,33 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { useAdminAuth } from '@/providers/admin-auth-provider';
 import { ApiError } from '@/types/api';
+import { ChangePasswordModal } from '@/components/auth/change-password-modal';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAdminAuth();
+  const { login, user } = useAdminAuth();
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingPasswordChange, setPendingPasswordChange] = useState(false);
+
+  // 비밀번호 변경이 끝나면(mustChangePassword=false) /banner로 이동.
+  useEffect(() => {
+    if (pendingPasswordChange && user && !user.mustChangePassword) {
+      setPendingPasswordChange(false);
+      router.replace('/banner');
+    }
+  }, [pendingPasswordChange, user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // mustChangePassword 분기는 디자인 확정 후 재도입. 지금은 일괄 배너로 진입.
-      // const { mustChangePassword } = await login(loginId, password);
-      // if (mustChangePassword) {
-      //   router.replace('/change-password');
-      // } else {
-      //   router.replace('/banner');
-      // }
-      await login(loginId, password);
-      router.replace('/banner');
+      const { mustChangePassword } = await login(loginId, password);
+      if (mustChangePassword) {
+        // 변경 모달 노출 → 완료 후 useEffect가 /banner로 이동시킴.
+        setPendingPasswordChange(true);
+      } else {
+        router.replace('/banner');
+      }
     } catch (err) {
       const message =
         err instanceof ApiError
@@ -134,6 +142,9 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+
+      {/* 첫 로그인 강제 비밀번호 변경 모달 — /banner 이동 전에 노출 */}
+      <ChangePasswordModal open={!!user?.mustChangePassword} />
     </div>
   );
 }
