@@ -75,9 +75,18 @@ type RowProps = {
   onToggle: (b: BannerResponse) => void;
   onDelete: (b: BannerResponse) => void;
   onEdit: (b: BannerResponse) => void;
+  showOrder?: boolean;
+  showPosition?: boolean;
 };
 
-function SortableTableRow({ banner, onToggle, onDelete, onEdit }: RowProps) {
+function SortableTableRow({
+  banner,
+  onToggle,
+  onDelete,
+  onEdit,
+  showOrder = true,
+  showPosition = false,
+}: RowProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: banner.id });
   const style = {
@@ -95,15 +104,22 @@ function SortableTableRow({ banner, onToggle, onDelete, onEdit }: RowProps) {
       style={style}
       className="border-b last:border-0 bg-white hover:bg-gray-50 group"
     >
-      <td className="p-4 w-[80px] text-center">
-        <button
-          {...attributes}
-          {...listeners}
-          className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
-        >
-          <GripVertical className="w-5 h-5" />
-        </button>
-      </td>
+      {showOrder && (
+        <td className="p-4 w-[80px] text-center">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            <GripVertical className="w-5 h-5" />
+          </button>
+        </td>
+      )}
+      {showPosition && (
+        <td className="p-4 text-gray-700 text-sm whitespace-nowrap">
+          {BANNER_POSITION_LABELS[banner.position]}
+        </td>
+      )}
       <td className="p-4">
         <div className="w-24 h-16 bg-gray-200 rounded-md overflow-hidden relative flex items-center justify-center">
           {banner.imageUrl && !imageFailed ? (
@@ -385,14 +401,14 @@ export default function BannerPage() {
           </div>
         </div>
 
-        <Link
-          href={`/banner/create?position=${isEnded ? 'TOP' : activeTab}`}
-        >
-          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
-            <Plus className="w-4 h-4 mr-2" />
-            배너 추가
-          </Button>
-        </Link>
+        {!isEnded && (
+          <Link href={`/banner/create?position=${activeTab}`}>
+            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
+              <Plus className="w-4 h-4 mr-2" />
+              배너 추가
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Table */}
@@ -407,9 +423,16 @@ export default function BannerPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <AdminTableHeaderRow>
-                    <AdminTableHead className="px-6 py-4 text-center w-[80px] whitespace-nowrap">
-                      순서
-                    </AdminTableHead>
+                    {!isEnded && (
+                      <AdminTableHead className="px-6 py-4 text-center w-[80px] whitespace-nowrap">
+                        순서
+                      </AdminTableHead>
+                    )}
+                    {isEnded && (
+                      <AdminTableHead className="px-6 py-4 whitespace-nowrap">
+                        위치
+                      </AdminTableHead>
+                    )}
                     <AdminTableHead className="px-6 py-4">이미지</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">배너 문구</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">게시 기간</AdminTableHead>
@@ -420,21 +443,21 @@ export default function BannerPage() {
                 <tbody className="divide-y divide-gray-100">
                   {isLoading && (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
+                      <td colSpan={isEnded ? 5 : 6} className="p-8 text-center text-gray-500 text-sm">
                         불러오는 중...
                       </td>
                     </tr>
                   )}
                   {isError && !isLoading && (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-red-500 text-sm">
+                      <td colSpan={isEnded ? 5 : 6} className="p-8 text-center text-red-500 text-sm">
                         {error instanceof ApiError ? error.message : '목록을 불러오지 못했습니다.'}
                       </td>
                     </tr>
                   )}
                   {!isLoading && !isError && banners.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-gray-500 text-sm">
+                      <td colSpan={isEnded ? 5 : 6} className="p-8 text-center text-gray-500 text-sm">
                         {hasSearchCondition
                           ? '검색 결과가 없습니다.'
                           : isEnded
@@ -454,6 +477,8 @@ export default function BannerPage() {
                         onToggle={(b) => toggleMutation.mutate(b)}
                         onDelete={handleDelete}
                         onEdit={(b) => router.push(`/banner/${b.id}`)}
+                        showOrder={!isEnded}
+                        showPosition={isEnded}
                       />
                     ))}
                   </SortableContext>
