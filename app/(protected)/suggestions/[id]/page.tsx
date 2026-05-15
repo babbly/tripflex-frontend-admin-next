@@ -219,7 +219,6 @@ export default function SuggestionDetailPage() {
           <PageTitle>유저 제안 상세</PageTitle>
         </div>
 
-        {/* 처리 상태 액션 — 상태 드롭다운 + 다운로드 버튼 */}
         <div className="flex items-center gap-2">
           <Select
             value={statusKey === 'REVIEWED' ? 'REVIEWED' : 'PENDING'}
@@ -260,7 +259,6 @@ export default function SuggestionDetailPage() {
         </div>
       </div>
 
-      {/* Main Info Card */}
       <div className="bg-white rounded-lg border border-gray-200 p-8 flex flex-col space-y-8 relative">
         <div className="flex flex-col space-y-6 max-w-[60%]">
           <div className="flex space-x-12">
@@ -310,7 +308,6 @@ export default function SuggestionDetailPage() {
           )}
         </div>
 
-        {/* 처리 메모 입력 (PENDING일 때만) */}
         {!isClosed && (
           <div>
             <div className="text-[12px] text-gray-400 font-medium mb-1.5">
@@ -325,7 +322,6 @@ export default function SuggestionDetailPage() {
           </div>
         )}
 
-        {/* Comments Section */}
         <div className="space-y-4">
           <div className="text-[12px] text-gray-400 font-medium">담당자 의견</div>
           <div className="space-y-3">

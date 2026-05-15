@@ -1,11 +1,9 @@
-// /api/auth/verify-reset-token.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   const { token } = await req.json();
 
-  // Validate the input
   if (!token) {
     return NextResponse.json(
       { message: 'Token is required.' },
@@ -14,7 +12,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Check if the token exists and is not expired
     const verificationToken = await prisma.verificationToken.findUnique({
       where: { token },
     });

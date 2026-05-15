@@ -73,7 +73,6 @@ const authOptions: NextAuthOptions = {
           );
         }
 
-        // Update `lastSignInAt` field
         await prisma.user.update({
           where: { id: user.id },
           data: { lastSignInAt: new Date() },
@@ -107,7 +106,6 @@ const authOptions: NextAuthOptions = {
         });
 
         if (existingUser) {
-          // Update `lastSignInAt` field for existing users
           await prisma.user.update({
             where: { id: existingUser.id },
             data: {
@@ -138,7 +136,6 @@ const authOptions: NextAuthOptions = {
           );
         }
 
-        // Create a new user and account
         const newUser = await prisma.user.create({
           data: {
             email: profile.email,

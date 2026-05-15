@@ -1,11 +1,9 @@
 import { $Enums } from '@prisma/client';
 import { SystemSetting } from './system';
 
-// Enums
 export const UserStatus = $Enums.UserStatus;
 export type UserStatus = $Enums.UserStatus;
 
-// Models
 export interface User {
   id: string;
   email: string;

@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
 
     const { email } = await req.json();
 
-    // Check if the user exists
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -42,10 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate a secure reset token
     const token = crypto.randomBytes(32).toString('hex');
-
-    // Store the token in the database with an expiry of 1 hour
     await prisma.verificationToken.create({
       data: {
         identifier: user.id,
@@ -54,10 +50,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Create reset URL
     const resetUrl = `${process.env.NEXTAUTH_URL}/change-password?token=${token}`;
-
-    // Send password reset email
     await sendEmail({
       to: email,
       subject: 'Password Reset Request',

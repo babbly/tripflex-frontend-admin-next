@@ -72,12 +72,10 @@ export default function ImageAnalysisPage() {
   const [deviceId, setDeviceId] = useState('');
 
   const filteredRecords = records.filter((record) => {
-    // 디바이스 ID 검색
     const matchesDeviceId = record.deviceId.toLowerCase().includes(deviceId.toLowerCase());
 
-    // 날짜 검색
     if (startDate && endDate) {
-      const recordDate = record.analysisDate.split(' ')[0]; // YYYY-MM-DD
+      const recordDate = record.analysisDate.split(' ')[0];
       return matchesDeviceId && recordDate >= startDate && recordDate <= endDate;
     }
 
@@ -92,9 +90,7 @@ export default function ImageAnalysisPage() {
         <PageTitle>이미지 분석 목록</PageTitle>
       </div>
 
-      {/* Filters & Actions Section */}
       <div className="space-y-4">
-        {/* Row 1: Device ID to End Date */}
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative w-[200px]">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -155,7 +151,6 @@ export default function ImageAnalysisPage() {
           </div>
         </div>
 
-        {/* Row 2: Processing time selection to Actions/Page size */}
         <div className="flex flex-wrap gap-3 items-center justify-between">
           <div className="flex flex-wrap gap-3 items-center">
             <Select>
@@ -275,7 +270,6 @@ export default function ImageAnalysisPage() {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="flex justify-end p-4 items-center space-x-1 bg-white border-t border-gray-100">
           <Button
             variant="outline"

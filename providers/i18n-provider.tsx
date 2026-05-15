@@ -8,7 +8,6 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Import translation files
 import enTranslations from '@/i18n/messages/en.json';
 import arTranslations from '@/i18n/messages/ar.json';
 import esTranslations from '@/i18n/messages/es.json';
@@ -23,7 +22,6 @@ function I18nProvider({ children }: I18nProviderProps) {
   const [isI18nInitialized, setIsI18nInitialized] = useState(false);
 
   useEffect(() => {
-    // Initialize i18n only on client side
     if (!i18n.isInitialized) {
       const resources = {
         en: { translation: enTranslations },
@@ -62,7 +60,6 @@ function I18nProvider({ children }: I18nProviderProps) {
       setIsI18nInitialized(true);
     }
 
-    // Update document direction when language changes
     const handleLanguageChange = (lng: string) => {
       const language = I18N_LANGUAGES.find((lang) => lang.code === lng);
       if (language?.direction) {
@@ -70,12 +67,10 @@ function I18nProvider({ children }: I18nProviderProps) {
       }
     };
 
-    // Set initial direction
     if (i18n.language) {
       handleLanguageChange(i18n.language);
     }
 
-    // Listen for language changes
     i18n.on('languageChanged', handleLanguageChange);
 
     return () => {
@@ -83,10 +78,8 @@ function I18nProvider({ children }: I18nProviderProps) {
     };
   }, []);
 
-  // Get current language for direction
   const currentLanguage = I18N_LANGUAGES.find((lang) => lang.code === (i18n.language || 'en')) || I18N_LANGUAGES[0];
 
-  // Don't render until i18n is initialized
   if (!isI18nInitialized) {
     return (
       <RadixDirectionProvider dir="ltr">

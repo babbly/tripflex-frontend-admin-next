@@ -28,7 +28,6 @@ const SettingsContext = createContext<SettingsContextType | undefined>(
 
 const LOCAL_STORAGE_PREFIX = 'app_settings_';
 
-// Utility to safely access localStorage
 const isBrowser = () => typeof window !== 'undefined';
 
 function getFromPath(obj: any, path: string): any {
@@ -73,7 +72,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     structuredClone(APP_SETTINGS),
   );
 
-  // Load settings from localStorage after mount
   useEffect(() => {
     if (!isBrowser()) return;
 
@@ -88,7 +86,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
     setSettings(init);
-  }, []); // Empty dependency array to run once on mount
+  }, []);
 
   const getOption = useCallback(
     <T,>(path: string): T => {

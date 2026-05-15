@@ -8,7 +8,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Token is missing' }, { status: 400 });
   }
 
-  // First, retrieve the verification token.
   const verificationToken = await prisma.verificationToken.findUnique({
     where: { token },
   });

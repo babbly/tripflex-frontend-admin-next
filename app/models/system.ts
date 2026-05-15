@@ -1,6 +1,5 @@
 import { User } from './user';
 
-// Models
 export interface SystemLog {
   id: string;
   event: string;
