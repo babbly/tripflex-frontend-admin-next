@@ -280,16 +280,18 @@ export default function LanguageTab() {
     <div className="flex gap-6">
       <div className="flex-1 flex flex-col gap-4">
         <div className="flex justify-end">
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setShowForm(true);
-            }}
-            className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            언어 추가
-          </Button>
+          {!showForm && (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setShowForm(true);
+              }}
+              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              언어 추가
+            </Button>
+          )}
         </div>
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
           {/* 페이지당 선택 — 페이지네이션 재도입 시 함께 활성화 */}
@@ -411,8 +413,8 @@ export default function LanguageTab() {
         </div>
       </div>
 
-      {showForm && (
-        <div className="w-[360px] flex flex-col gap-4 shrink-0">
+      <div className={`transition-all duration-300 overflow-hidden shrink-0 ${showForm ? 'w-[360px]' : 'w-0'}`}>
+        <div className="w-[360px] flex flex-col gap-4">
           <Card className="p-6 border-gray-200 shadow-sm flex flex-col gap-6">
             <h3 className="font-bold text-[18px] text-gray-900">
               {editing ? '언어 편집' : '언어 추가'}
@@ -498,7 +500,7 @@ export default function LanguageTab() {
             </div>
           </Card>
         </div>
-      )}
+      </div>
 
       <ConfirmModal
         isOpen={!!deleteTarget}

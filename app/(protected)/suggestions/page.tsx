@@ -121,9 +121,26 @@ export default function SuggestionsPage() {
     }
   };
 
-  const handleDownloadImages = () => {
-    // 백엔드 ZIP 압축 엔드포인트 연동 후 활성화 — after.md 참고
-    toast.message('전체 IMAGE 다운로드는 준비 중입니다.');
+  const handleDownloadImages = async () => {
+    try {
+      const blob = await suggestionApi.downloadImagesZip({
+        status: status || undefined,
+        content: content || undefined,
+        categoryCode: categoryCode || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `suggestions-images-${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   return (

@@ -143,6 +143,9 @@ function SortableTableRow({
           <div className="text-sm text-gray-500 mt-1">{banner.subtitle}</div>
         )}
       </td>
+      <td className="p-4 text-gray-600 text-sm whitespace-nowrap">
+        {banner.tag || '-'}
+      </td>
       <td className="p-4 text-gray-600 text-sm">
         {formatDateRange(banner.startAt, banner.endAt)}
       </td>
@@ -435,6 +438,7 @@ export default function BannerPage() {
                     )}
                     <AdminTableHead className="px-6 py-4">이미지</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">배너 문구</AdminTableHead>
+                    <AdminTableHead className="px-6 py-4">태그</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">게시 기간</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">활성화</AdminTableHead>
                     <AdminTableHead className="px-6 py-4">관리</AdminTableHead>
@@ -443,21 +447,21 @@ export default function BannerPage() {
                 <tbody className="divide-y divide-gray-100">
                   {isLoading && (
                     <tr>
-                      <td colSpan={isEnded ? 5 : 6} className="p-8 text-center text-gray-500 text-sm">
+                      <td colSpan={isEnded ? 6 : 7} className="p-8 text-center text-gray-500 text-sm">
                         불러오는 중...
                       </td>
                     </tr>
                   )}
                   {isError && !isLoading && (
                     <tr>
-                      <td colSpan={isEnded ? 5 : 6} className="p-8 text-center text-red-500 text-sm">
+                      <td colSpan={isEnded ? 6 : 7} className="p-8 text-center text-red-500 text-sm">
                         {error instanceof ApiError ? error.message : '목록을 불러오지 못했습니다.'}
                       </td>
                     </tr>
                   )}
                   {!isLoading && !isError && banners.length === 0 && (
                     <tr>
-                      <td colSpan={isEnded ? 5 : 6} className="p-8 text-center text-gray-500 text-sm">
+                      <td colSpan={isEnded ? 6 : 7} className="p-8 text-center text-gray-500 text-sm">
                         {hasSearchCondition
                           ? '검색 결과가 없습니다.'
                           : isEnded

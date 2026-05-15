@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { faqApi } from '@/lib/faq-api';
 import { ApiError } from '@/types/api';
 
@@ -46,6 +47,13 @@ export default function FAQEditPage() {
   const [question, setQuestion] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [locale, setLocale] = useState('');
+  const [answerText, setAnswerText] = useState('');
+  const [cancelOpen, setCancelOpen] = useState(false);
+
+  const [initCategory, setInitCategory] = useState('');
+  const [initQuestion, setInitQuestion] = useState('');
+  const [initIsActive, setInitIsActive] = useState(true);
+  const [editorModified, setEditorModified] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,8 +75,24 @@ export default function FAQEditPage() {
     if (editorRef.current) {
       editorRef.current.innerHTML = data.answer ?? '';
     }
+    const plainText = (data.answer ?? '').replace(/<[^>]+>/g, '').trim();
+    setAnswerText(plainText);
+    setInitCategory(data.category ?? '');
+    setInitQuestion(data.question ?? '');
+    setInitIsActive(data.active);
     setHydrated(true);
   }, [data, hydrated]);
+
+  const isFormValid =
+    category.trim().length > 0 &&
+    question.trim().length > 0 &&
+    answerText.trim().length > 0;
+
+  const isDirty =
+    category !== initCategory ||
+    question !== initQuestion ||
+    isActive !== initIsActive ||
+    editorModified;
 
   const saveSelection = () => {
     const sel = window.getSelection();
@@ -179,30 +203,18 @@ export default function FAQEditPage() {
       });
     },
     onSuccess: () => {
-      toast.success('수정되었습니다.');
+      toast.success('저장되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['faq', faqId] });
       queryClient.invalidateQueries({ queryKey: ['faqs'] });
       router.replace('/faq');
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '수정에 실패했습니다.');
+      toast.error(e instanceof ApiError ? e.message : '저장에 실패했습니다.');
     },
   });
 
   const handleSave = () => {
-    if (!category.trim()) {
-      toast.error('카테고리를 입력해주세요.');
-      return;
-    }
-    if (!question.trim()) {
-      toast.error('질문을 입력해주세요.');
-      return;
-    }
-    const answerHtml = editorRef.current?.innerHTML ?? '';
-    if (!answerHtml || answerHtml.replace(/<[^>]+>/g, '').trim() === '') {
-      toast.error('답변을 입력해주세요.');
-      return;
-    }
+    if (!isFormValid) return;
     updateMutation.mutate();
   };
 
@@ -248,13 +260,21 @@ export default function FAQEditPage() {
           <Button
             variant="outline"
             className="h-[44px] px-6 border-[#E4E4E7] text-[#18181B] font-[600] rounded-[6px] bg-white hover:bg-gray-50"
-            onClick={() => router.push('/faq')}
+            onClick={() => {
+              if (isDirty) setCancelOpen(true);
+              else router.push('/faq');
+            }}
           >
             취소
           </Button>
           <Button
-            disabled={updateMutation.isPending}
-            className="bg-[#4186FF] hover:bg-blue-600 text-white font-[600] h-[44px] px-6 rounded-[6px] flex items-center gap-2 shadow-sm"
+            disabled={!isFormValid || updateMutation.isPending}
+            className="font-[600] h-[44px] px-6 rounded-[6px] flex items-center gap-2 shadow-sm"
+            style={
+              !isFormValid
+                ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' }
+                : undefined
+            }
             onClick={handleSave}
           >
             <Check className="w-4 h-4" />
@@ -413,6 +433,11 @@ export default function FAQEditPage() {
               onMouseUp={saveSelection}
               onKeyUp={saveSelection}
               onBlur={saveSelection}
+              onInput={(e) => {
+                const text = (e.currentTarget.textContent ?? '').trim();
+                setAnswerText(text);
+                setEditorModified(true);
+              }}
               className="faq-editor min-h-[400px] p-8 outline-none text-[16px] text-[#3F3F46] leading-relaxed bg-white focus:ring-0"
               style={{ fontFamily: 'inherit' }}
             />
@@ -427,6 +452,17 @@ export default function FAQEditPage() {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+        title="변경사항이 있습니다."
+        description="취소하시겠습니까?"
+        variant="double"
+        confirmText="확인"
+        cancelText="취소"
+        confirmColor="blue"
+        onConfirm={() => router.push('/faq')}
+      />
     </div>
   );
 }

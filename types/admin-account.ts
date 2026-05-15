@@ -21,6 +21,7 @@ export type AdminAccountCreateRequest = {
   email?: string;
   role?: AdminRole;
   authGroupId?: string;
+  active?: boolean;
 };
 
 export type AdminAccountUpdateRequest = {

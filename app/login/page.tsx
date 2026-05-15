@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { useAdminAuth } from '@/providers/admin-auth-provider';
 import { ApiError } from '@/types/api';
@@ -15,7 +14,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
   const [pendingPasswordChange, setPendingPasswordChange] = useState(false);
+
+  const isFormValid = loginId.trim().length > 0 && password.length > 0;
 
   useEffect(() => {
     if (pendingPasswordChange && user && !user.mustChangePassword) {
@@ -37,9 +39,9 @@ export default function LoginPage() {
     } catch (err) {
       const message =
         err instanceof ApiError
-          ? err.message
-          : '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.';
-      toast.error(message);
+          ? '아이디 혹은 비밀번호를 확인해주세요.'
+          : '로그인에 실패했습니다. 다시 시도해주세요.';
+      setLoginError(message);
       setIsLoading(false);
     }
   };
@@ -79,7 +81,7 @@ export default function LoginPage() {
                   type="text"
                   placeholder="admin"
                   value={loginId}
-                  onChange={(e) => setLoginId(e.target.value)}
+                  onChange={(e) => { setLoginId(e.target.value); setLoginError(''); }}
                   className="pl-10 h-11 border-gray-200 bg-white text-gray-900"
                   autoComplete="username"
                   required
@@ -96,16 +98,17 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setLoginError(''); }}
                   className="pl-4 pr-11 h-11 border-gray-200 bg-white text-gray-900"
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={styles.eyeButton}
+                  onClick={() => password && setShowPassword(!showPassword)}
+                  style={{ ...styles.eyeButton, opacity: password ? 1 : 0.3, cursor: password ? 'pointer' : 'default' }}
                   aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
                   className="z-10"
+                  tabIndex={-1}
                 >
                   {showPassword ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} style={styles.eyeIcon}>
@@ -124,16 +127,24 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* 인라인 에러 */}
+            {loginError && (
+              <p style={{ margin: '-8px 0 0', fontSize: '13px', color: '#ef4444' }}>
+                {loginError}
+              </p>
+            )}
+
             {/* 로그인 버튼 */}
             <button
               id="login-submit-btn"
               type="submit"
               style={{
                 ...styles.loginButton,
-                opacity: isLoading ? 0.8 : 1,
-                cursor: isLoading ? 'not-allowed' : 'pointer',
+                backgroundColor: !isFormValid || isLoading ? '#E4E4E7' : '#4a8af4',
+                color: !isFormValid || isLoading ? '#A1A1AA' : '#ffffff',
+                cursor: !isFormValid || isLoading ? 'not-allowed' : 'pointer',
               }}
-              disabled={isLoading}
+              disabled={!isFormValid || isLoading}
             >
               {isLoading ? '로그인 중...' : '로그인'}
             </button>

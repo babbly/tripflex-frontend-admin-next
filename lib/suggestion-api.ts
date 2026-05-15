@@ -72,6 +72,16 @@ export const suggestionApi = {
     if (!res.ok) throw new Error('다운로드에 실패했습니다.');
     return res.blob();
   },
+
+  downloadImagesZip: async (params: SuggestionListParams = {}) => {
+    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/suggestions/download/images-zip${toQuery(params)}`;
+    const access = authToken.getAccess();
+    const res = await fetch(url, {
+      headers: access ? { Authorization: `Bearer ${access}` } : undefined,
+    });
+    if (!res.ok) throw new Error('다운로드에 실패했습니다.');
+    return res.blob();
+  },
 };
 
 export const suggestionCategoryApi = {

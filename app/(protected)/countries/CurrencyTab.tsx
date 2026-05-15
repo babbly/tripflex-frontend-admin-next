@@ -157,6 +157,8 @@ export default function CurrencyTab() {
   const [displayOrder, setDisplayOrder] = useState(0);
   const [active, setActive] = useState(true);
 
+  const [nameKoError, setNameKoError] = useState('');
+  const [symbolError, setSymbolError] = useState('');
   const [currencyCodeError, setCurrencyCodeError] = useState<string>('');
 
   useEffect(() => {
@@ -179,6 +181,8 @@ export default function CurrencyTab() {
       setDisplayOrder(0);
       setActive(true);
     }
+    setNameKoError('');
+    setSymbolError('');
     setCurrencyCodeError('');
   }, [editing]);
 
@@ -275,23 +279,29 @@ export default function CurrencyTab() {
   const [deleteTarget, setDeleteTarget] = useState<CurrencyResponse | null>(null);
 
   const handleSave = () => {
+    let valid = true;
     if (!nameKo.trim()) {
-      toast.error('통화명을 입력해주세요.');
-      return;
+      setNameKoError('통화명을 입력해주세요.');
+      valid = false;
+    } else {
+      setNameKoError('');
     }
     if (!symbol.trim()) {
-      toast.error('통화 기호를 입력해주세요.');
-      return;
+      setSymbolError('통화 기호를 입력해주세요.');
+      valid = false;
+    } else {
+      setSymbolError('');
     }
     if (!currencyCode) {
       setCurrencyCodeError('통화코드를 입력해주세요.');
-      return;
-    }
-    if (!CURRENCY_CODE_PATTERN.test(currencyCode)) {
+      valid = false;
+    } else if (!CURRENCY_CODE_PATTERN.test(currencyCode)) {
       setCurrencyCodeError('올바른 통화코드를 입력해주세요.');
-      return;
+      valid = false;
+    } else {
+      setCurrencyCodeError('');
     }
-    setCurrencyCodeError('');
+    if (!valid) return;
     if (editing) updateMutation.mutate();
     else createMutation.mutate();
   };
@@ -300,16 +310,18 @@ export default function CurrencyTab() {
     <div className="flex gap-6">
       <div className="flex-1 flex flex-col gap-4">
         <div className="flex justify-end">
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setShowForm(true);
-            }}
-            className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            통화 추가
-          </Button>
+          {!showForm && (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setShowForm(true);
+              }}
+              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              통화 추가
+            </Button>
+          )}
         </div>
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
           {/* 페이지당 선택 — 페이지네이션 재도입 시 함께 활성화 */}
@@ -431,8 +443,8 @@ export default function CurrencyTab() {
         </div>
       </div>
 
-      {showForm && (
-        <div className="w-[360px] flex flex-col gap-4 shrink-0">
+      <div className={`transition-all duration-300 overflow-hidden shrink-0 ${showForm ? 'w-[360px]' : 'w-0'}`}>
+        <div className="w-[360px] flex flex-col gap-4">
           <Card className="p-6 border-gray-200 shadow-sm flex flex-col gap-6">
             <h3 className="font-bold text-[18px] text-gray-900">
               {editing ? '통화 편집' : '통화 추가'}
@@ -446,10 +458,11 @@ export default function CurrencyTab() {
                 <Input
                   placeholder="통화명을 입력해주세요"
                   value={nameKo}
-                  onChange={(e) => setNameKo(e.target.value)}
+                  onChange={(e) => { setNameKo(e.target.value); if (nameKoError) setNameKoError(''); }}
                   maxLength={100}
-                  className="border-gray-200 h-11"
+                  className={`border-gray-200 h-11 ${nameKoError ? 'border-red-400' : ''}`}
                 />
+                {nameKoError && <p className="text-[12px] text-red-500">{nameKoError}</p>}
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[14px] font-semibold text-gray-900">
@@ -458,10 +471,11 @@ export default function CurrencyTab() {
                 <Input
                   placeholder="통화기호를 입력해주세요"
                   value={symbol}
-                  onChange={(e) => setSymbol(e.target.value)}
+                  onChange={(e) => { setSymbol(e.target.value); if (symbolError) setSymbolError(''); }}
                   maxLength={10}
-                  className="border-gray-200 h-11"
+                  className={`border-gray-200 h-11 ${symbolError ? 'border-red-400' : ''}`}
                 />
+                {symbolError && <p className="text-[12px] text-red-500">{symbolError}</p>}
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[14px] font-semibold text-gray-900">
@@ -541,7 +555,7 @@ export default function CurrencyTab() {
             </div>
           </Card>
         </div>
-      )}
+      </div>
 
       <ConfirmModal
         isOpen={!!deleteTarget}

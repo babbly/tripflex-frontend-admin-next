@@ -120,8 +120,7 @@ export default function AccountsPage() {
         loginId: loginId.trim(),
         name: name.trim(),
         authGroupId: authGroupId || undefined,
-        // TODO: 백엔드 AdminAccountCreateRequest에 active 필드 추가 후 활성화 (after.md §7)
-        // active,
+        active,
       }),
     onSuccess: () => {
       toast.success('저장되었습니다.');
@@ -208,13 +207,15 @@ export default function AccountsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              onClick={handleAdd}
-              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold leading-normal h-9 px-4"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              계정 추가
-            </Button>
+            {!showForm && (
+              <Button
+                onClick={handleAdd}
+                className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold leading-normal h-9 px-4"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                계정 추가
+              </Button>
+            )}
           </div>
         </div>
 
@@ -362,10 +363,10 @@ export default function AccountsPage() {
       </div>
 
       {/* 우측 편집 패널 */}
-      {showForm && (
+      <div className={`transition-all duration-300 overflow-hidden shrink-0 self-start ${showForm ? 'w-[380px]' : 'w-0'}`}>
         <div
           key={editing?.id || 'new'}
-          className="w-[380px] bg-white rounded-[8px] border border-[#E4E4E7] shadow-sm p-[20px] flex flex-col shrink-0 self-start gap-[16px]"
+          className="w-[380px] bg-white rounded-[8px] border border-[#E4E4E7] shadow-sm p-[20px] flex flex-col gap-[16px]"
         >
           <div className="flex justify-between items-center">
             <h3 className="font-bold text-lg text-gray-900">
@@ -496,7 +497,7 @@ export default function AccountsPage() {
             </Button>
           </div>
         </div>
-      )}
+      </div>
 
       <ConfirmModal
         isOpen={!!deleteTarget}

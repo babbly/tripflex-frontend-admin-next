@@ -21,6 +21,7 @@ import { PageTitle } from '@/components/ui/page-title';
 import { bannerApi } from '@/lib/banner-api';
 import { BannerResponse } from '@/types/banner';
 import { ApiError } from '@/types/api';
+import { ImageLightbox } from '@/components/ui/image-lightbox';
 
 function toIsoStart(date: string) {
   return date ? `${date}T00:00:00` : undefined;
@@ -61,6 +62,7 @@ export default function BannerEditPage() {
   const [filePreview, setFilePreview] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
@@ -357,7 +359,8 @@ export default function BannerEditPage() {
                 <img
                   src={previewUrl}
                   alt="미리보기"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-zoom-in"
+                  onClick={() => setLightboxSrc(previewUrl)}
                 />
                 <button
                   type="button"
@@ -431,6 +434,7 @@ export default function BannerEditPage() {
           </div>
         </div>
       </div>
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
     </div>
   );
 }

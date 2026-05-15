@@ -272,13 +272,15 @@ export default function PermissionsPage() {
         <div className="flex justify-between items-center">
           <PageTitle>권한 관리</PageTitle>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={handleAdd}
-              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              권한 추가
-            </Button>
+            {!showForm && (
+              <Button
+                onClick={handleAdd}
+                className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                권한 추가
+              </Button>
+            )}
           </div>
         </div>
 
@@ -394,8 +396,8 @@ export default function PermissionsPage() {
         </div>
       </div>
 
-      {showForm && (
-        <div className="w-[420px] flex-shrink-0">
+      <div className={`transition-all duration-300 overflow-hidden flex-shrink-0 ${showForm ? 'w-[420px]' : 'w-0'}`}>
+        <div className="w-[420px]">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
             <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
               <h2 className="text-[16px] font-[700] text-[#18181B]">
@@ -528,7 +530,7 @@ export default function PermissionsPage() {
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       <ConfirmModal
         isOpen={!!deleteTarget}

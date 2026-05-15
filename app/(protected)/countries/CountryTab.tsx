@@ -39,6 +39,7 @@ import {
 import { countryApi } from '@/lib/country-api';
 import { CountryResponse } from '@/types/country';
 import { ApiError } from '@/types/api';
+import { ImageLightbox } from '@/components/ui/image-lightbox';
 
 const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -176,6 +177,7 @@ export default function CountryTab() {
   const [filePreview, setFilePreview] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   // 취소 확인 모달
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -389,16 +391,18 @@ export default function CountryTab() {
     <div className="flex gap-6">
       <div className="flex-1 flex flex-col gap-4">
         <div className="flex justify-end">
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setShowForm(true);
-            }}
-            className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            국가 추가
-          </Button>
+          {!showForm && (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setShowForm(true);
+              }}
+              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold h-10 px-4"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              국가 추가
+            </Button>
+          )}
         </div>
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
           <DndContext
@@ -500,8 +504,8 @@ export default function CountryTab() {
         </div>
       </div>
 
-      {showForm && (
-        <div className="w-[360px] flex flex-col gap-4 shrink-0">
+      <div className={`transition-all duration-300 overflow-hidden shrink-0 ${showForm ? 'w-[360px]' : 'w-0'}`}>
+        <div className="w-[360px] flex flex-col gap-4">
           <Card className="p-6 border-gray-200 shadow-sm flex flex-col gap-6">
             <h3 className="font-bold text-[18px] text-gray-900">
               {editing ? '국가 편집' : '국가 추가'}
@@ -581,7 +585,8 @@ export default function CountryTab() {
                     <img
                       src={filePreview || flagImageUrl}
                       alt="국기 미리보기"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover cursor-zoom-in"
+                      onClick={() => setLightboxSrc(filePreview || flagImageUrl)}
                     />
                     <button
                       type="button"
@@ -658,7 +663,7 @@ export default function CountryTab() {
             </div>
           </Card>
         </div>
-      )}
+      </div>
 
       <ConfirmModal
         isOpen={!!deleteTarget}
@@ -688,6 +693,7 @@ export default function CountryTab() {
           setEditing(null);
         }}
       />
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
     </div>
   );
 }
