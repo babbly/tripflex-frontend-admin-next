@@ -18,10 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { suggestionApi, suggestionCategoryApi } from '@/lib/suggestion-api';
-import {
-  SUGGESTION_STATUS_LABELS,
-  SuggestionStatus,
-} from '@/types/suggestion';
+import { SuggestionStatus } from '@/types/suggestion';
 import { ApiError } from '@/types/api';
 
 const ScanPlaceholderIcon = ({ className }: { className?: string }) => (
@@ -42,7 +39,6 @@ const ScanIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// 설계서 상태 매핑: 미확인=PENDING, 확인 완료=REVIEWED (CLOSED는 백엔드와 정리 필요 — after.md)
 const DETAIL_STATUS_OPTIONS: { value: 'PENDING' | 'REVIEWED'; label: string }[] = [
   { value: 'PENDING', label: '미확인' },
   { value: 'REVIEWED', label: '확인 완료' },
@@ -75,7 +71,7 @@ export default function SuggestionDetailPage() {
   const [adminNote, setAdminNote] = useState('');
 
   const reviewMutation = useMutation({
-    mutationFn: (status: 'REVIEWED' | 'CLOSED') =>
+    mutationFn: (status: 'REVIEWED') =>
       suggestionApi.review(suggestionId, {
         status,
         adminNote: adminNote.trim() || undefined,
@@ -119,7 +115,7 @@ export default function SuggestionDetailPage() {
   };
 
   const handleDownloadSingleImage = (url: string, fileName: string) => {
-    // 단순 anchor download — CORS 정책에 따라 새 탭으로 열릴 수 있음. ZIP 패키징 백엔드 후속 작업
+    // 단순 anchor download — CORS 정책에 따라 새 탭으로 열릴 수 있음
     try {
       const a = document.createElement('a');
       a.href = url;
@@ -129,6 +125,38 @@ export default function SuggestionDetailPage() {
       document.body.appendChild(a);
       a.click();
       a.remove();
+    } catch {
+      toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleDownloadAnalysisImage = async () => {
+    try {
+      const blob = await suggestionApi.downloadAnalysisImage(suggestionId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `suggestion-${suggestionId}-analysis.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleDownloadAnalysisJson = async () => {
+    try {
+      const blob = await suggestionApi.downloadAnalysisJson(suggestionId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `suggestion-${suggestionId}-analysis.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     } catch {
       toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
     }
@@ -173,11 +201,10 @@ export default function SuggestionDetailPage() {
     : categories.find((c) => c.id === data.categoryId);
   const statusKey = (data.status as SuggestionStatus) || 'PENDING';
   const imageUrls = data.imageUrls ?? [];
-  const isClosed = statusKey === 'CLOSED' || statusKey === 'REVIEWED';
+  const isClosed = statusKey === 'REVIEWED';
 
   return (
     <div className="w-full space-y-6 pb-12">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <Link href="/suggestions">
@@ -356,46 +383,46 @@ export default function SuggestionDetailPage() {
         </div>
       </div>
 
-      {/* 분석 이미지 — 백엔드 분석 결과 이미지 필드 추가 후 데이터 바인딩 (after.md) */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
         <div className="flex items-center space-x-2 mb-6">
           <ScanIcon className="w-5 h-5 text-[#4186FF]" />
           <h2 className="text-[16px] font-[700] text-gray-900">분석 이미지</h2>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-          {Array.from({ length: Math.max(imageUrls.length, 5) }).map((_, index) => (
-            <div key={`analyzed-${index}`} className="flex flex-col space-y-3">
-              <AspectRatio ratio={206 / 145}>
-                <div className="bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF] w-full h-full">
-                  <ScanPlaceholderIcon className="w-10 h-10 text-[#4186FF] opacity-60" />
-                </div>
-              </AspectRatio>
-              <div className="flex flex-col space-y-2">
-                <Button
-                  variant="outline"
-                  disabled
-                  style={{ backgroundColor: '#E4E4E7', color: '#A1A1AA' }}
-                  className="w-full h-8 border-gray-100 text-[11px] font-[600] px-2 disabled:hover:bg-[#E4E4E7]"
-                >
-                  <Download className="w-3 h-3 mr-1" />
-                  이미지
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled
-                  style={{ backgroundColor: '#E4E4E7', color: '#A1A1AA' }}
-                  className="w-full h-8 border-gray-100 text-[11px] font-[600] px-2 disabled:hover:bg-[#E4E4E7]"
-                >
-                  <Download className="w-3 h-3 mr-1" />
-                  JSON
-                </Button>
+        <div className="flex flex-col w-[180px] space-y-3">
+          <AspectRatio ratio={206 / 145}>
+            {data.analysisImageUrl ? (
+              <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-100 w-full h-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={data.analysisImageUrl} alt="분석 이미지" className="w-full h-full object-cover" />
               </div>
-            </div>
-          ))}
+            ) : (
+              <div className="bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF] w-full h-full">
+                <ScanPlaceholderIcon className="w-10 h-10 text-[#4186FF] opacity-60" />
+              </div>
+            )}
+          </AspectRatio>
+          <div className="flex flex-col space-y-2">
+            <Button
+              variant="outline"
+              onClick={handleDownloadAnalysisImage}
+              disabled={!data.analysisImageUrl}
+              style={!data.analysisImageUrl ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' } : undefined}
+              className="w-full h-8 border-gray-100 text-[11px] font-[600] px-2 disabled:hover:bg-[#E4E4E7]"
+            >
+              <Download className="w-3 h-3 mr-1" />
+              이미지
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDownloadAnalysisJson}
+              className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2"
+            >
+              <Download className="w-3 h-3 mr-1" />
+              JSON
+            </Button>
+          </div>
         </div>
       </div>
-
-      {/* 원본 이미지 */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
         <div className="flex items-center space-x-2 mb-6">
           <ImageIcon className="w-5 h-5 text-gray-600" />

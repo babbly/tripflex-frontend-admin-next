@@ -1,10 +1,9 @@
-export const SUGGESTION_STATUSES = ['PENDING', 'REVIEWED', 'CLOSED'] as const;
+export const SUGGESTION_STATUSES = ['PENDING', 'REVIEWED'] as const;
 export type SuggestionStatus = (typeof SUGGESTION_STATUSES)[number];
 
 export const SUGGESTION_STATUS_LABELS: Record<SuggestionStatus, string> = {
   PENDING: '미처리',
   REVIEWED: '처리됨',
-  CLOSED: '종료',
 };
 
 export type SuggestionSummary = {
@@ -46,6 +45,7 @@ export type SuggestionDetail = {
   categoryCode?: string;
   categoryName?: string;
   imageUrls?: string[];
+  analysisImageUrl?: string;
 };
 
 export type CommentRequest = {
@@ -53,7 +53,7 @@ export type CommentRequest = {
 };
 
 export type ReviewRequest = {
-  status: 'REVIEWED' | 'CLOSED';
+  status: 'REVIEWED';
   adminNote?: string;
 };
 

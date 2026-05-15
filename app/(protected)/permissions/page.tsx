@@ -108,7 +108,6 @@ export default function PermissionsPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [groupCode, setGroupCode] = useState('');
   const [groupName, setGroupName] = useState('');
   const [description, setDescription] = useState('');
   const [active, setActive] = useState(true);
@@ -123,13 +122,11 @@ export default function PermissionsPage() {
 
   useEffect(() => {
     if (editingId && detailData) {
-      setGroupCode(detailData.groupCode);
       setGroupName(detailData.groupName);
       setDescription(detailData.description ?? '');
       setActive(detailData.active);
       setPerms(buildPermissionState(menus ?? [], detailData.menuPermissions));
     } else if (!editingId) {
-      setGroupCode('');
       setGroupName('');
       setDescription('');
       setActive(true);
@@ -164,7 +161,6 @@ export default function PermissionsPage() {
   const createMutation = useMutation({
     mutationFn: async () => {
       const created = await authGroupApi.create({
-        groupCode: groupCode.trim().toUpperCase(),
         groupName: groupName.trim(),
         description: description || undefined,
         active,
@@ -274,7 +270,6 @@ export default function PermissionsPage() {
 
   return (
     <div className="w-full flex gap-6 pb-12">
-      {/* Left: list */}
       <div className="flex-1 space-y-4">
         <div className="flex justify-between items-center">
           <PageTitle>권한 관리</PageTitle>
@@ -401,7 +396,6 @@ export default function PermissionsPage() {
         </div>
       </div>
 
-      {/* Right: edit form */}
       {showForm && (
         <div className="w-[420px] flex-shrink-0">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
@@ -411,25 +405,6 @@ export default function PermissionsPage() {
               </h2>
               {editingId && detailData && (
                 <DeleteButton onClick={() => setDeleteTarget(detailData)} />
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[14px] font-[600] text-[#18181B]">
-                그룹 코드 {!editingId && <span className="text-red-500">*</span>}
-              </Label>
-              <Input
-                value={groupCode}
-                onChange={(e) => setGroupCode(e.target.value)}
-                placeholder="OPERATOR"
-                maxLength={30}
-                disabled={!!editingId}
-                className={`h-11 ${editingId ? 'bg-gray-50 text-gray-500' : ''}`}
-              />
-              {editingId && (
-                <p className="text-[11px] text-gray-400">
-                  그룹 코드는 수정할 수 없습니다.
-                </p>
               )}
             </div>
 

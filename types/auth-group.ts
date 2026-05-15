@@ -21,7 +21,6 @@ export type AuthGroupResponse = {
 };
 
 export type AuthGroupCreateRequest = {
-  groupCode: string;
   groupName: string;
   description?: string;
   displayOrder?: number;
