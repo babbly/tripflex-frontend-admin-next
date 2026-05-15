@@ -205,15 +205,13 @@ export default function PermissionsPage() {
   });
 
   const [deleteTarget, setDeleteTarget] = useState<AuthGroupResponse | null>(null);
+  const [deleteBlockedOpen, setDeleteBlockedOpen] = useState(false);
   const deleteMutation = useMutation({
     mutationFn: (id: string) => authGroupApi.remove(id),
     onSuccess: () => {
       toast.success('삭제되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['auth-groups'] });
       if (deleteTarget?.id === editingId) handleCloseForm();
-    },
-    onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : '삭제에 실패했습니다.');
     },
   });
 
@@ -541,10 +539,30 @@ export default function PermissionsPage() {
         confirmText="삭제"
         cancelText="취소"
         confirmColor="red"
-        onConfirm={() => {
-          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          const targetId = deleteTarget.id;
           setDeleteTarget(null);
+          try {
+            await deleteMutation.mutateAsync(targetId);
+          } catch (e) {
+            if (e instanceof ApiError && e.status === 409) {
+              setDeleteBlockedOpen(true);
+            } else {
+              toast.error('삭제에 실패했습니다. 다시 시도해주세요.');
+            }
+          }
         }}
+      />
+
+      <ConfirmModal
+        isOpen={deleteBlockedOpen}
+        onClose={() => setDeleteBlockedOpen(false)}
+        title="삭제할 수 없습니다"
+        description={"계정에 연결된 권한이 있어 삭제할 수 없습니다.\n해당 권한을 해제한 후 다시 시도해 주세요."}
+        variant="single"
+        confirmText="확인"
+        onConfirm={() => setDeleteBlockedOpen(false)}
       />
     </div>
   );
