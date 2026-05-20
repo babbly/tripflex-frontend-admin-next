@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   cancelText?: string;
   onConfirm: () => void | Promise<unknown>;
   confirmColor?: 'blue' | 'red';
+  titleClassName?: string;
 }
 
 export function ConfirmModal({
@@ -25,6 +26,7 @@ export function ConfirmModal({
   cancelText = '취소',
   onConfirm,
   confirmColor,
+  titleClassName,
 }: ConfirmModalProps) {
   const actualConfirmColor = confirmColor || (variant === 'single' ? 'blue' : 'red');
 
@@ -56,12 +58,12 @@ export function ConfirmModal({
           "
         >
           <div className="flex flex-col items-center justify-center gap-[10px] w-full text-center text-[#091D32]">
-            <AlertDialogPrimitive.Title className="w-full h-[65px] flex items-center justify-center text-[20px] font-semibold leading-[30px]">
+            <AlertDialogPrimitive.Title className={`w-full flex items-center justify-center text-[20px] font-semibold leading-[30px] whitespace-pre-line ${titleClassName ?? 'h-[65px]'}`}>
               {title}
             </AlertDialogPrimitive.Title>
             {description && (
               <AlertDialogPrimitive.Description
-                className="w-full h-[65px] flex items-center justify-center font-normal not-italic text-[#091D32] text-center text-[13px] leading-[20px] whitespace-pre-line"
+                className="w-full flex items-center justify-center font-normal not-italic text-[#091D32] text-center text-[13px] leading-[20px] whitespace-pre-line"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {description}

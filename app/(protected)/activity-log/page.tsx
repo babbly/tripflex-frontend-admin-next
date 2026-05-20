@@ -89,7 +89,7 @@ export default function ActivityLogPage() {
             <Input
               type="text"
               className="pl-9 h-11 border-gray-200 bg-white text-[#18181B] placeholder:text-[#A1A1AA] rounded-[8px]"
-              placeholder="작업자 및 대상자 검색"
+              placeholder="작업자 및 작업자ID 검색"
               value={keywordInput}
               onChange={(e) => setKeywordInput(e.target.value)}
             />
@@ -283,11 +283,10 @@ export default function ActivityLogPage() {
                 key={p}
                 variant={p === page ? 'primary' : 'outline'}
                 size="icon"
-                className={`w-8 h-8 p-0 rounded-[4px] text-[13px] font-[600] ${
-                  p === page
+                className={`w-8 h-8 p-0 rounded-[4px] text-[13px] font-[600] ${p === page
                     ? 'bg-[#4186FF] text-white hover:bg-blue-600 border-transparent shadow-sm'
                     : 'border-gray-200 text-[#71717A] hover:bg-gray-50'
-                }`}
+                  }`}
                 onClick={() => setPage(p)}
               >
                 {p + 1}
