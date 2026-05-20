@@ -1,6 +1,5 @@
 import { adminApi } from './admin-api';
-import { authToken } from './auth-token';
-import { ApiError, ApiResponse } from '@/types/api';
+import { ApiError } from '@/types/api';
 import type {
   BannerCreateRequest,
   BannerListParams,
@@ -13,6 +12,12 @@ import type {
 export type BannerImageUploadResponse = {
   imageUrl: string;
   imagePath?: string;
+};
+
+type BannerUploadUrlResponse = {
+  uploadUrl: string;
+  publicUrl: string;
+  imagePath: string;
 };
 
 function toQuery(params: BannerListParams): string {
@@ -41,39 +46,21 @@ export const bannerApi = {
   reorder: (items: BannerReorderItem[]) =>
     adminApi.patch<void>('/api/admin/banners/reorder', items),
 
-  // 백엔드 업로드 엔드포인트 연동 — AWS 키 수령 후 활성화 (api.md P-9)
   uploadImage: async (file: File): Promise<BannerImageUploadResponse> => {
-    const base = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') ?? '';
-    const form = new FormData();
-    form.append('file', file);
+    const presignRes = await adminApi.post<BannerUploadUrlResponse>(
+      '/api/admin/banners/banner-upload-url',
+      { filename: file.name, contentType: file.type },
+    );
 
-    const headers = new Headers();
-    const access = authToken.getAccess();
-    if (access) headers.set('Authorization', `Bearer ${access}`);
-
-    const res = await fetch(`${base}/api/admin/banners/image-upload-url`, {
-      method: 'POST',
-      body: form,
-      headers,
+    const putRes = await fetch(presignRes.uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type },
     });
+    if (!putRes.ok) {
+      throw new ApiError('UPLOAD_FAILED', '이미지 업로드에 실패했습니다.', putRes.status);
+    }
 
-    const text = await res.text();
-    if (!text) {
-      throw new ApiError('UPLOAD_FAILED', '이미지 업로드에 실패했습니다.', res.status);
-    }
-    let json: ApiResponse<BannerImageUploadResponse>;
-    try {
-      json = JSON.parse(text) as ApiResponse<BannerImageUploadResponse>;
-    } catch {
-      throw new ApiError('INVALID_RESPONSE', text, res.status);
-    }
-    if (!json.success || !json.data) {
-      throw new ApiError(
-        json.code ?? 'UPLOAD_FAILED',
-        json.message ?? '이미지 업로드에 실패했습니다.',
-        res.status,
-      );
-    }
-    return json.data;
+    return { imageUrl: presignRes.publicUrl, imagePath: presignRes.imagePath };
   },
 };
