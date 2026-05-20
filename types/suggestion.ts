@@ -53,7 +53,7 @@ export type CommentRequest = {
 };
 
 export type ReviewRequest = {
-  status: 'REVIEWED';
+  status: SuggestionStatus;
   adminNote?: string;
 };
 

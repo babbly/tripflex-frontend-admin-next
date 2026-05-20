@@ -71,7 +71,7 @@ export default function SuggestionDetailPage() {
   const [adminNote, setAdminNote] = useState('');
 
   const reviewMutation = useMutation({
-    mutationFn: (status: 'REVIEWED') =>
+    mutationFn: (status: SuggestionStatus) =>
       suggestionApi.review(suggestionId, {
         status,
         adminNote: adminNote.trim() || undefined,
@@ -86,8 +86,7 @@ export default function SuggestionDetailPage() {
   });
 
   const handleStatusChange = (next: 'PENDING' | 'REVIEWED') => {
-    // 백엔드는 PENDING으로의 되돌리기를 지원하지 않을 수 있음 — after.md 참고
-    if (next === 'REVIEWED') reviewMutation.mutate('REVIEWED');
+    reviewMutation.mutate(next);
   };
 
   const handleDownloadDetailJson = () => {
@@ -201,7 +200,6 @@ export default function SuggestionDetailPage() {
     : categories.find((c) => c.id === data.categoryId);
   const statusKey = (data.status as SuggestionStatus) || 'PENDING';
   const imageUrls = data.imageUrls ?? [];
-  const isClosed = statusKey === 'REVIEWED';
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -223,7 +221,7 @@ export default function SuggestionDetailPage() {
           <Select
             value={statusKey === 'REVIEWED' ? 'REVIEWED' : 'PENDING'}
             onValueChange={(v) => handleStatusChange(v as 'PENDING' | 'REVIEWED')}
-            disabled={reviewMutation.isPending || statusKey === 'REVIEWED'}
+            disabled={reviewMutation.isPending}
           >
             <SelectTrigger className="w-[140px] h-10 text-sm border-gray-200">
               <SelectValue />
@@ -308,8 +306,7 @@ export default function SuggestionDetailPage() {
           )}
         </div>
 
-        {!isClosed && (
-          <div>
+        <div>
             <div className="text-[12px] text-gray-400 font-medium mb-1.5">
               처리 메모 (선택)
             </div>
@@ -320,7 +317,6 @@ export default function SuggestionDetailPage() {
               className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[60px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none"
             />
           </div>
-        )}
 
         <div className="space-y-4">
           <div className="text-[12px] text-gray-400 font-medium">담당자 의견</div>
