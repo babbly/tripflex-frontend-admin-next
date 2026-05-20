@@ -408,7 +408,7 @@ export default function BannerPage() {
           <Link href={`/banner/create?position=${activeTab}`}>
             <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
               <Plus className="w-4 h-4 mr-2" />
-              배너 추가
+              {activeTab === 'HOME' ? '이미지 추가' : '배너 추가'}
             </Button>
           </Link>
         )}
