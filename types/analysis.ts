@@ -14,6 +14,12 @@ export interface AnalysisMenuItem {
   displayOrder: number;
 }
 
+export interface AnalysisImage {
+  id: string;
+  imageUrl: string;
+  recognized: boolean;
+}
+
 export interface AnalysisResponse {
   id: string;
   deviceId: string;
@@ -27,6 +33,7 @@ export interface AnalysisResponse {
   ocrModel?: string;
   status: AnalysisStatus;
   menuItems: AnalysisMenuItem[];
+  analysisImages?: AnalysisImage[];
   insDttm: string;
   imageUploadMs?: number;
   ocrMs?: number;

@@ -548,7 +548,7 @@ export default function PermissionsPage() {
           try {
             await deleteMutation.mutateAsync(targetId);
           } catch (e) {
-            if (e instanceof ApiError && e.status === 409) {
+            if (e instanceof ApiError && e.code === 'AUTH_GROUP_IN_USE') {
               setDeleteBlockedOpen(true);
             } else {
               toast.error('삭제에 실패했습니다. 다시 시도해주세요.');

@@ -238,13 +238,41 @@ export default function ImageAnalysisDetailPage() {
         )}
       </div>
 
-      {/* Analyzed Images Section — 분석 결과 이미지는 백엔드 스키마 추가 후 연동 예정 */}
+      {/* Analyzed Images Section */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
         <div className="flex items-center space-x-2 mb-6">
           <ScanIcon className="w-5 h-5 text-[#4186FF]" />
           <h2 className="text-[16px] font-[700] text-gray-900">분석 이미지</h2>
         </div>
-        <p className="text-sm text-gray-400">분석 이미지 데이터는 추후 제공될 예정입니다.</p>
+        {data.analysisImages && data.analysisImages.length > 0 ? (
+          <div className="flex flex-wrap gap-4">
+            {data.analysisImages.map((img) => (
+              <div key={img.id} className="flex flex-col space-y-2 w-[206px]">
+                <div className="relative">
+                  <AspectRatio ratio={206 / 145}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.imageUrl}
+                      alt="분석 이미지"
+                      className="w-full h-full object-cover rounded-lg border border-gray-200"
+                    />
+                  </AspectRatio>
+                  <span
+                    className={`absolute top-2 right-2 text-[11px] font-[600] px-2 py-0.5 rounded-full ${
+                      img.recognized
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
+                    {img.recognized ? '인식됨' : '미인식'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">분석 이미지가 없습니다.</p>
+        )}
       </div>
     </div>
   );
