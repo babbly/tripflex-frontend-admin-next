@@ -67,17 +67,7 @@ export default function FAQPage() {
     <div className="w-full flex flex-col gap-[24px]">
       <div className="flex justify-between items-center">
         <PageTitle>FAQ 관리</PageTitle>
-        <Link href="/faq/create">
-          <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
-            <Plus className="w-4 h-4 mr-2" />
-            FAQ 추가
-          </Button>
-        </Link>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-[12px]">
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <span className="text-[13px] text-gray-500">페이지당</span>
           <Select
             value={pageSize}
@@ -95,6 +85,12 @@ export default function FAQPage() {
               <SelectItem value="50">50</SelectItem>
             </SelectContent>
           </Select>
+          <Link href="/faq/create">
+            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
+              <Plus className="w-4 h-4 mr-2" />
+              FAQ 추가
+            </Button>
+          </Link>
         </div>
       </div>
 
