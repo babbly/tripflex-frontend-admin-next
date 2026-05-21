@@ -28,6 +28,11 @@ export type CommentResponse = {
   insDttm?: string;
 };
 
+export type AnalyzedImage = {
+  imageUrl: string;
+  label: string;
+};
+
 export type SuggestionDetail = {
   id: string;
   categoryId: string;
@@ -46,6 +51,7 @@ export type SuggestionDetail = {
   categoryName?: string;
   imageUrls?: string[];
   analysisImageUrl?: string;
+  analyzedImages?: AnalyzedImage[];
 };
 
 export type CommentRequest = {

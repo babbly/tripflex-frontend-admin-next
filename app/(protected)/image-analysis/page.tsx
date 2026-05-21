@@ -119,10 +119,44 @@ export default function ImageAnalysisPage() {
     setPage(0);
   }
 
+  const currentFilters = {
+    deviceId: deviceId || undefined,
+    countryCode: countryCode || undefined,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+    latencyType: (latencyType as LatencyType) || undefined,
+    latencyMin,
+    latencyMax,
+  };
+
   async function handleRowDownloadJson(id: string) {
     try {
       const blob = await analysisApi.downloadJson(id);
       triggerDownload(blob, `analysis-${id}.json`);
+    } catch {
+      toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
+    }
+  }
+
+  async function handleDownloadAllImages() {
+    try {
+      const { blob, truncated } = await analysisApi.downloadImagesZip(currentFilters);
+      if (truncated) {
+        toast.warning('50건 초과로 일부만 포함되었습니다. 필터를 좁혀 다시 시도하세요.');
+      }
+      triggerDownload(blob, 'analysis-images.zip');
+    } catch {
+      toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
+    }
+  }
+
+  async function handleDownloadAllJson() {
+    try {
+      const { blob, truncated } = await analysisApi.downloadAllJson(currentFilters);
+      if (truncated) {
+        toast.warning('1000건 초과로 일부만 포함되었습니다. 필터를 좁혀 다시 시도하세요.');
+      }
+      triggerDownload(blob, 'analyses.json');
     } catch {
       toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
     }
@@ -252,7 +286,7 @@ export default function ImageAnalysisPage() {
             <Button
               disabled={records.length === 0}
               className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-4 disabled:bg-[#E4E4E7] disabled:text-[#A1A1AA] disabled:cursor-not-allowed"
-              onClick={() => toast.info('전체 IMAGE 다운로드는 준비 중입니다.')}
+              onClick={handleDownloadAllImages}
             >
               <Download className="w-4 h-4 mr-2" />
               전체 IMAGE 다운로드
@@ -260,7 +294,7 @@ export default function ImageAnalysisPage() {
             <Button
               disabled={records.length === 0}
               className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-4 disabled:bg-[#E4E4E7] disabled:text-[#A1A1AA] disabled:cursor-not-allowed"
-              onClick={() => toast.info('전체 JSON 다운로드는 준비 중입니다.')}
+              onClick={handleDownloadAllJson}
             >
               <Download className="w-4 h-4 mr-2" />
               전체 JSON 다운로드

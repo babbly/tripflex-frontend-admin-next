@@ -108,9 +108,20 @@ export default function SuggestionDetailPage() {
     }
   };
 
-  const handleDownloadAllImages = () => {
-    // 백엔드 ZIP 압축 엔드포인트 연동 후 활성화 — after.md 참고
-    toast.message('전체 IMAGE 다운로드는 준비 중입니다.');
+  const handleDownloadAllImages = async () => {
+    try {
+      const blob = await suggestionApi.downloadSuggestionImagesZip(suggestionId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `suggestion-${suggestionId}-images.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleDownloadSingleImage = (url: string, fileName: string) => {
@@ -380,40 +391,68 @@ export default function SuggestionDetailPage() {
           <ScanIcon className="w-5 h-5 text-[#4186FF]" />
           <h2 className="text-[16px] font-[700] text-gray-900">분석 이미지</h2>
         </div>
-        <div className="flex flex-col w-[180px] space-y-3">
-          <AspectRatio ratio={206 / 145}>
-            {data.analysisImageUrl ? (
-              <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-100 w-full h-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={data.analysisImageUrl} alt="분석 이미지" className="w-full h-full object-cover" />
-              </div>
-            ) : (
-              <div className="bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF] w-full h-full">
-                <ScanPlaceholderIcon className="w-10 h-10 text-[#4186FF] opacity-60" />
-              </div>
-            )}
-          </AspectRatio>
-          <div className="flex flex-col space-y-2">
-            <Button
-              variant="outline"
-              onClick={handleDownloadAnalysisImage}
-              disabled={!data.analysisImageUrl}
-              style={!data.analysisImageUrl ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' } : undefined}
-              className="w-full h-8 border-gray-100 text-[11px] font-[600] px-2 disabled:hover:bg-[#E4E4E7]"
-            >
-              <Download className="w-3 h-3 mr-1" />
-              이미지
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleDownloadAnalysisJson}
-              className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2"
-            >
-              <Download className="w-3 h-3 mr-1" />
-              JSON
-            </Button>
+        {(data.analyzedImages ?? []).length > 0 ? (
+          <div className="flex flex-col space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+              {(data.analyzedImages ?? []).map((img, index) => (
+                <div key={`analyzed-${index}`} className="flex flex-col space-y-2">
+                  <AspectRatio ratio={206 / 145}>
+                    <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-100 w-full h-full">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img.imageUrl} alt={img.label} className="w-full h-full object-cover" />
+                    </div>
+                  </AspectRatio>
+                  <div className="text-[11px] text-gray-500 text-center">{img.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleDownloadAnalysisJson}
+                className="h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-3"
+              >
+                <Download className="w-3 h-3 mr-1" />
+                JSON
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col w-[180px] space-y-3">
+            <AspectRatio ratio={206 / 145}>
+              {data.analysisImageUrl ? (
+                <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-100 w-full h-full">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={data.analysisImageUrl} alt="분석 이미지" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="bg-[#F4F7FF] rounded-lg flex items-center justify-center border border-[#E0E7FF] w-full h-full">
+                  <ScanPlaceholderIcon className="w-10 h-10 text-[#4186FF] opacity-60" />
+                </div>
+              )}
+            </AspectRatio>
+            <div className="flex flex-col space-y-2">
+              <Button
+                variant="outline"
+                onClick={handleDownloadAnalysisImage}
+                disabled={!data.analysisImageUrl}
+                style={!data.analysisImageUrl ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' } : undefined}
+                className="w-full h-8 border-gray-100 text-[11px] font-[600] px-2 disabled:hover:bg-[#E4E4E7]"
+              >
+                <Download className="w-3 h-3 mr-1" />
+                이미지
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDownloadAnalysisJson}
+                className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2"
+              >
+                <Download className="w-3 h-3 mr-1" />
+                JSON
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
         <div className="flex items-center space-x-2 mb-6">

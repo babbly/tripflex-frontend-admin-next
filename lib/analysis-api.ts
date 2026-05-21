@@ -3,7 +3,7 @@ import { authToken } from './auth-token';
 import type { AnalysisListParams, AnalysisResponse } from '@/types/analysis';
 import type { PageResponse } from '@/types/api';
 
-function toQuery(params: Record<string, unknown>): string {
+function toQuery(params: object): string {
   const q = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
     if (v === undefined || v === null || v === '') return;
@@ -40,17 +40,27 @@ export const analysisApi = {
   downloadZip: (id: string) =>
     downloadBlob(`${base()}/api/admin/analyses/${id}/download/zip`),
 
-  downloadImagesZip: async (ids: string[]) => {
+  downloadImagesZip: async (params: AnalysisListParams = {}) => {
     const access = authToken.getAccess();
-    const res = await fetch(`${base()}/api/admin/analyses/download/images-zip`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(access ? { Authorization: `Bearer ${access}` } : {}),
-      },
-      body: JSON.stringify({ ids }),
-    });
+    const res = await fetch(
+      `${base()}/api/admin/analyses/download/images-zip${toQuery(params)}`,
+      { headers: access ? { Authorization: `Bearer ${access}` } : undefined },
+    );
     if (!res.ok) throw new Error('다운로드에 실패했습니다.');
-    return res.blob();
+    const truncated = res.headers.get('X-Truncated') === 'true';
+    const blob = await res.blob();
+    return { blob, truncated };
+  },
+
+  downloadAllJson: async (params: AnalysisListParams = {}) => {
+    const access = authToken.getAccess();
+    const res = await fetch(
+      `${base()}/api/admin/analyses/download/json${toQuery(params)}`,
+      { headers: access ? { Authorization: `Bearer ${access}` } : undefined },
+    );
+    if (!res.ok) throw new Error('다운로드에 실패했습니다.');
+    const truncated = res.headers.get('X-Truncated') === 'true';
+    const blob = await res.blob();
+    return { blob, truncated };
   },
 };
