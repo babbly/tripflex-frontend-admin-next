@@ -444,7 +444,7 @@ export default function LanguageTab() {
                   언어명 영문 (ex. Korean)
                 </label>
                 <Input
-                  placeholder="English Name"
+                  placeholder="언어명을 영문으로 입력해주세요"
                   value={nameEn}
                   onChange={(e) => {
                     setNameEn(e.target.value);
@@ -462,7 +462,7 @@ export default function LanguageTab() {
                   언어코드 (ex. ko)
                 </label>
                 <Input
-                  placeholder="Language Code"
+                  placeholder="언어코드를 입력해주세요"
                   value={languageCode}
                   onChange={(e) => {
                     setLanguageCode(e.target.value.toLowerCase().slice(0, 3));

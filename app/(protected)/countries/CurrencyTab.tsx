@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { GripVertical, Plus } from 'lucide-react';
+import { GripVertical, Plus, X } from 'lucide-react';
 import {
   closestCenter,
   DndContext,
@@ -30,7 +30,6 @@ import {
   AdminTableHead,
   AdminTableHeaderRow,
 } from '@/components/ui/admin-table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { currencyApi } from '@/lib/currency-api';
 import { countryApi } from '@/lib/country-api';
 import { countryCurrencyMappingApi } from '@/lib/country-currency-mapping-api';
@@ -160,6 +159,9 @@ export default function CurrencyTab() {
   const [nameKoError, setNameKoError] = useState('');
   const [symbolError, setSymbolError] = useState('');
   const [currencyCodeError, setCurrencyCodeError] = useState<string>('');
+  const [countrySearch, setCountrySearch] = useState('');
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
+  const countrySearchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (editing) {
@@ -184,6 +186,8 @@ export default function CurrencyTab() {
     setNameKoError('');
     setSymbolError('');
     setCurrencyCodeError('');
+    setCountrySearch('');
+    setCountryDropdownOpen(false);
   }, [editing]);
 
   const syncMappings = async (
@@ -497,39 +501,85 @@ export default function CurrencyTab() {
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[14px] font-semibold text-gray-900">
-                  사용 국가 (복수 선택)
+                  국가 선택 (다중선택)
                 </label>
-                <div className="border border-gray-200 rounded-md max-h-[200px] overflow-y-auto p-2">
-                  {allCountries.length === 0 ? (
-                    <p className="text-[12px] text-gray-400 px-2 py-1">
-                      등록된 국가가 없습니다.
-                    </p>
-                  ) : (
-                    allCountries.map((c) => {
-                      const checked = selectedCountryIds.includes(c.id);
+                <div ref={countrySearchRef} className="relative">
+                  <div
+                    className={`flex flex-wrap gap-1.5 min-h-[44px] px-3 py-2 border rounded-md bg-white cursor-text transition-colors ${countryDropdownOpen ? 'border-[#4186FF] ring-1 ring-[#4186FF]' : 'border-gray-200'}`}
+                    onClick={() => {
+                      const input = countrySearchRef.current?.querySelector('input');
+                      input?.focus();
+                    }}
+                  >
+                    {selectedCountryIds.map((id) => {
+                      const country = allCountries.find((c) => c.id === id);
+                      if (!country) return null;
                       return (
-                        <label
-                          key={c.id}
-                          className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#EEF1FF] text-[#4186FF] text-[12px] font-medium rounded-full self-center"
                         >
-                          <Checkbox
-                            checked={checked}
-                            onCheckedChange={(v) => {
-                              if (v) {
-                                setSelectedCountryIds((prev) => [...prev, c.id]);
-                              } else {
-                                setSelectedCountryIds((prev) =>
-                                  prev.filter((id) => id !== c.id),
-                                );
-                              }
-                            }}
-                          />
-                          <span className="text-[13px] text-gray-700">
-                            {c.nameKo}
-                          </span>
-                        </label>
+                          {country.nameKo}
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() =>
+                              setSelectedCountryIds((prev) => prev.filter((i) => i !== id))
+                            }
+                            className="hover:opacity-70 transition-opacity"
+                            aria-label={`${country.nameKo} 제거`}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
                       );
-                    })
+                    })}
+                    <input
+                      type="text"
+                      value={countrySearch}
+                      onChange={(e) => {
+                        setCountrySearch(e.target.value);
+                        setCountryDropdownOpen(true);
+                      }}
+                      onFocus={() => setCountryDropdownOpen(true)}
+                      onBlur={() => setTimeout(() => setCountryDropdownOpen(false), 150)}
+                      placeholder={selectedCountryIds.length === 0 ? '국가명을 검색하여 선택해주세요' : ''}
+                      className="flex-1 min-w-[120px] text-[13px] text-gray-700 placeholder:text-gray-400 outline-none bg-transparent self-center"
+                    />
+                  </div>
+                  {countryDropdownOpen && (
+                    <div className="absolute z-10 top-[calc(100%+4px)] left-0 right-0 bg-white border border-gray-200 rounded-md shadow-md max-h-[180px] overflow-y-auto">
+                      {(() => {
+                        const filtered = allCountries.filter(
+                          (c) =>
+                            !selectedCountryIds.includes(c.id) &&
+                            (countrySearch.trim() === '' ||
+                              c.nameKo.includes(countrySearch.trim()) ||
+                              c.nameEn.toLowerCase().includes(countrySearch.trim().toLowerCase())),
+                        );
+                        if (filtered.length === 0) {
+                          return (
+                            <p className="px-3 py-2 text-[12px] text-gray-400">
+                              {allCountries.length === 0 ? '등록된 국가가 없습니다.' : '검색 결과가 없습니다.'}
+                            </p>
+                          );
+                        }
+                        return filtered.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setSelectedCountryIds((prev) => [...prev, c.id]);
+                              setCountrySearch('');
+                            }}
+                            className="w-full text-left px-3 py-2 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            {c.nameKo}
+                          </button>
+                        ));
+                      })()}
+                    </div>
                   )}
                 </div>
               </div>

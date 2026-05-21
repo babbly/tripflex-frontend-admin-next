@@ -545,7 +545,7 @@ export default function CountryTab() {
                   국가명 영문 (ex. Korea)
                 </label>
                 <Input
-                  placeholder="English Name"
+                  placeholder="국가명을 영문으로 입력해주세요"
                   value={nameEn}
                   onChange={(e) => {
                     setNameEn(e.target.value);
@@ -563,7 +563,7 @@ export default function CountryTab() {
                   ISO 국가코드 (ex. KR)
                 </label>
                 <Input
-                  placeholder="ISO Code"
+                  placeholder="ISO 국가코드를 입력해주세요"
                   value={countryCode}
                   onChange={(e) => {
                     setCountryCode(e.target.value.toUpperCase().slice(0, 2));
