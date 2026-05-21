@@ -20,6 +20,7 @@ import {
 import { suggestionApi, suggestionCategoryApi } from '@/lib/suggestion-api';
 import { SuggestionStatus } from '@/types/suggestion';
 import { ApiError } from '@/types/api';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 const ScanPlaceholderIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" className={className}>
@@ -53,6 +54,7 @@ export default function SuggestionDetailPage() {
   const { id } = useParams();
   const suggestionId = id as string;
   const queryClient = useQueryClient();
+  const { canWrite } = usePagePermission('/suggestions');
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['suggestion', suggestionId],
@@ -232,7 +234,7 @@ export default function SuggestionDetailPage() {
           <Select
             value={statusKey === 'REVIEWED' ? 'REVIEWED' : 'PENDING'}
             onValueChange={(v) => handleStatusChange(v as 'PENDING' | 'REVIEWED')}
-            disabled={reviewMutation.isPending}
+            disabled={reviewMutation.isPending || !canWrite}
           >
             <SelectTrigger className="w-[140px] h-10 text-sm border-gray-200">
               <SelectValue />
@@ -325,7 +327,8 @@ export default function SuggestionDetailPage() {
               value={adminNote}
               onChange={(e) => setAdminNote(e.target.value)}
               placeholder="처리 메모를 입력하시면 위의 처리 버튼과 함께 저장됩니다."
-              className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[60px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none"
+              disabled={!canWrite}
+              className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[60px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -345,8 +348,8 @@ export default function SuggestionDetailPage() {
                     {formatDateTime(comment.insDttm)}
                   </span>
                   <Badge
-                    onClick={() => toggleConfirmMutation.mutate(comment.id)}
-                    className={`cursor-pointer text-[10px] font-[600] border-none shadow-none px-2 py-0.5 ${
+                    onClick={() => canWrite && toggleConfirmMutation.mutate(comment.id)}
+                    className={`text-[10px] font-[600] border-none shadow-none px-2 py-0.5 ${canWrite ? 'cursor-pointer' : 'cursor-default'} ${
                       comment.confirmed
                         ? 'bg-[#EEF1FF] text-[#4186FF] hover:bg-[#E0EFFF]'
                         : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -362,27 +365,29 @@ export default function SuggestionDetailPage() {
             ))}
           </div>
 
-          <div className="pt-2 flex flex-col space-y-3">
-            <textarea
-              className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[50px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none"
-              placeholder="내용을 입력해주세요"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-            <div className="flex justify-end">
-              <Button
-                onClick={() => {
-                  const c = newComment.trim();
-                  if (!c) return;
-                  addCommentMutation.mutate(c);
-                }}
-                disabled={addCommentMutation.isPending || !newComment.trim()}
-                className="bg-[#4186FF] hover:bg-blue-600 text-white text-[13px] font-[600] h-9 px-6 rounded-md shadow-sm"
-              >
-                {addCommentMutation.isPending ? '작성 중...' : '작성'}
-              </Button>
+          {canWrite && (
+            <div className="pt-2 flex flex-col space-y-3">
+              <textarea
+                className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[50px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none"
+                placeholder="내용을 입력해주세요"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => {
+                    const c = newComment.trim();
+                    if (!c) return;
+                    addCommentMutation.mutate(c);
+                  }}
+                  disabled={addCommentMutation.isPending || !newComment.trim()}
+                  className="bg-[#4186FF] hover:bg-blue-600 text-white text-[13px] font-[600] h-9 px-6 rounded-md shadow-sm"
+                >
+                  {addCommentMutation.isPending ? '작성 중...' : '작성'}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

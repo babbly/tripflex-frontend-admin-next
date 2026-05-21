@@ -33,6 +33,7 @@ import {
   SuggestionStatus,
 } from '@/types/suggestion';
 import { ApiError } from '@/types/api';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 const CATEGORY_ALL = '__ALL__';
 const STATUS_ALL = '__ALL__';
@@ -43,6 +44,7 @@ function formatDateTime(iso?: string) {
 }
 
 export default function SuggestionsPage() {
+  const { canRead } = usePagePermission('/suggestions');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
   const size = parseInt(pageSize, 10);
@@ -142,6 +144,14 @@ export default function SuggestionsPage() {
       toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
     }
   };
+
+  if (!canRead) {
+    return (
+      <div className="w-full flex items-center justify-center py-20 text-[15px] text-gray-400">
+        접근 권한이 없습니다.
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-6 pb-12">

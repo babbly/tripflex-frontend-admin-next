@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { activityLogApi } from '@/lib/activity-log-api';
 import { ApiError } from '@/types/api';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 function formatDateTime(iso?: string) {
   if (!iso) return '-';
@@ -31,6 +32,7 @@ function formatDateTime(iso?: string) {
 }
 
 export default function ActivityLogPage() {
+  const { canRead } = usePagePermission('/activity-log');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
   const [keywordInput, setKeywordInput] = useState('');
@@ -73,6 +75,14 @@ export default function ActivityLogPage() {
 
   const logs = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
+
+  if (!canRead) {
+    return (
+      <div className="w-full flex items-center justify-center py-20 text-[15px] text-gray-400">
+        접근 권한이 없습니다.
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col space-y-6 pb-12">

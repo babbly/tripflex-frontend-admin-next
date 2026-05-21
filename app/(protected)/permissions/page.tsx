@@ -38,6 +38,7 @@ import {
   AuthGroupResponse,
 } from '@/types/auth-group';
 import { ApiError } from '@/types/api';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 const CustomHistoryIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" className={className}>
@@ -131,6 +132,7 @@ function sortMenusBySidebar(menus: AdminMenuResponse[]): AdminMenuResponse[] {
 
 export default function PermissionsPage() {
   const queryClient = useQueryClient();
+  const { canRead, canWrite, canDelete } = usePagePermission('/permissions');
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
@@ -308,13 +310,21 @@ export default function PermissionsPage() {
     return menu.menuName;
   };
 
+  if (!canRead) {
+    return (
+      <div className="w-full flex items-center justify-center py-20 text-[15px] text-gray-400">
+        접근 권한이 없습니다.
+      </div>
+    );
+  }
+
   return (
     <div className="w-full flex gap-6 pb-12">
       <div className="flex-1 space-y-4">
         <div className="flex justify-between items-center">
           <PageTitle>권한 관리</PageTitle>
           <div className="flex items-center gap-3">
-            {!showForm && (
+            {canWrite && !showForm && (
               <Button
                 onClick={handleAdd}
                 className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-10 px-4"
@@ -390,7 +400,7 @@ export default function PermissionsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end space-x-2">
-                        <EditButton onClick={() => handleEdit(g)} />
+                        {canWrite && <EditButton onClick={() => handleEdit(g)} />}
                       </div>
                     </td>
                   </tr>
@@ -445,7 +455,7 @@ export default function PermissionsPage() {
               <h2 className="text-[16px] font-[700] text-[#18181B]">
                 {editingId ? '권한 편집' : '권한 추가'}
               </h2>
-              {editingId && detailData && (
+              {editingId && detailData && canDelete && (
                 <DeleteButton onClick={() => setDeleteTarget(detailData)} />
               )}
             </div>

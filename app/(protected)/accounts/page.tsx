@@ -31,9 +31,11 @@ import { adminAccountApi } from '@/lib/admin-account-api';
 import { authGroupApi } from '@/lib/auth-group-api';
 import { AdminAccountResponse } from '@/types/admin-account';
 import { ApiError } from '@/types/api';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 export default function AccountsPage() {
   const queryClient = useQueryClient();
+  const { canRead, canWrite, canDelete } = usePagePermission('/accounts');
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
@@ -183,6 +185,14 @@ export default function AccountsPage() {
   const findGroup = (id?: string) =>
     id ? authGroups.find((g) => g.id === id) : undefined;
 
+  if (!canRead) {
+    return (
+      <div className="w-full flex items-center justify-center py-20 text-[15px] text-gray-400">
+        접근 권한이 없습니다.
+      </div>
+    );
+  }
+
   return (
     <div className="w-full flex gap-6 pb-12">
       <div className="flex-1 flex flex-col space-y-6">
@@ -207,7 +217,7 @@ export default function AccountsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {!showForm && (
+            {canWrite && !showForm && (
               <Button
                 onClick={handleAdd}
                 className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-semibold leading-normal h-9 px-4"
@@ -313,7 +323,7 @@ export default function AccountsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end space-x-2">
-                          <EditButton onClick={() => handleEdit(a)} />
+                          {canWrite && <EditButton onClick={() => handleEdit(a)} />}
                         </div>
                       </td>
                     </tr>
@@ -372,7 +382,7 @@ export default function AccountsPage() {
             <h3 className="font-bold text-lg text-gray-900">
               {editing ? '계정 편집' : '계정 추가'}
             </h3>
-            {editing && (
+            {editing && canDelete && (
               <DeleteButton onClick={() => setDeleteTarget(editing)} />
             )}
           </div>

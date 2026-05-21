@@ -19,6 +19,7 @@ import {
 import { analysisApi } from '@/lib/analysis-api';
 import { countryApi } from '@/lib/country-api';
 import type { LatencyType } from '@/types/analysis';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 const LATENCY_OPTIONS: { label: string; value: LatencyType }[] = [
   { label: '이미지 처리 (Vision)', value: 'VISION' },
@@ -52,6 +53,7 @@ function triggerDownload(blob: Blob, filename: string) {
 }
 
 export default function ImageAnalysisPage() {
+  const { canRead } = usePagePermission('/image-analysis');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
   const size = parseInt(pageSize, 10);
@@ -160,6 +162,14 @@ export default function ImageAnalysisPage() {
     } catch {
       toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
     }
+  }
+
+  if (!canRead) {
+    return (
+      <div className="w-full flex items-center justify-center py-20 text-[15px] text-gray-400">
+        접근 권한이 없습니다.
+      </div>
+    );
   }
 
   return (

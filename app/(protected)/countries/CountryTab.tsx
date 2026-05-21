@@ -40,6 +40,7 @@ import { countryApi } from '@/lib/country-api';
 import { CountryResponse } from '@/types/country';
 import { ApiError } from '@/types/api';
 import { ImageLightbox } from '@/components/ui/image-lightbox';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -50,9 +51,11 @@ type CountryRowProps = {
   country: CountryResponse;
   onEdit: (c: CountryResponse) => void;
   onDelete: (c: CountryResponse) => void;
+  canWrite?: boolean;
+  canDelete?: boolean;
 };
 
-function SortableCountryRow({ country, onEdit, onDelete }: CountryRowProps) {
+function SortableCountryRow({ country, onEdit, onDelete, canWrite = true, canDelete = true }: CountryRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: country.id });
   const style = {
@@ -67,14 +70,16 @@ function SortableCountryRow({ country, onEdit, onDelete }: CountryRowProps) {
       className="hover:bg-gray-50 transition-colors bg-white"
     >
       <td className="px-4 py-4 w-[60px] text-center">
-        <button
-          {...attributes}
-          {...listeners}
-          className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
-          aria-label="순서 변경"
-        >
-          <GripVertical className="w-5 h-5" />
-        </button>
+        {canWrite && (
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
+            aria-label="순서 변경"
+          >
+            <GripVertical className="w-5 h-5" />
+          </button>
+        )}
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
@@ -97,8 +102,8 @@ function SortableCountryRow({ country, onEdit, onDelete }: CountryRowProps) {
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center justify-end gap-2">
-          <EditButton onClick={() => onEdit(country)} />
-          <DeleteButton onClick={() => onDelete(country)} />
+          {canWrite && <EditButton onClick={() => onEdit(country)} />}
+          {canDelete && <DeleteButton onClick={() => onDelete(country)} />}
         </div>
       </td>
     </tr>
@@ -107,6 +112,7 @@ function SortableCountryRow({ country, onEdit, onDelete }: CountryRowProps) {
 
 export default function CountryTab() {
   const queryClient = useQueryClient();
+  const { canWrite, canDelete } = usePagePermission('/countries');
 
   // 페이지네이션 제거 — 순서 변경 기능 추가 시 재도입.
   // const [page, setPage] = useState(0);
@@ -393,7 +399,7 @@ export default function CountryTab() {
     <div className="flex gap-6">
       <div className="flex-1 flex flex-col gap-4">
         <div className="flex justify-end">
-          {!showForm && (
+          {!showForm && canWrite && (
             <Button
               onClick={() => {
                 setEditing(null);
@@ -459,6 +465,8 @@ export default function CountryTab() {
                         setShowForm(true);
                       }}
                       onDelete={(target) => setDeleteTarget(target)}
+                      canWrite={canWrite}
+                      canDelete={canDelete}
                     />
                   ))}
                 </SortableContext>

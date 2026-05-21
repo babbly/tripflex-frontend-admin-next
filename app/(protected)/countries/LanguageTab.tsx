@@ -33,6 +33,7 @@ import {
 import { languageApi } from '@/lib/language-api';
 import { LanguageResponse } from '@/types/language';
 import { ApiError } from '@/types/api';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 const ENGLISH_NAME_PATTERN = /^[A-Za-z\s'.-]+$/;
 const LANGUAGE_CODE_PATTERN = /^[a-z]{2,3}$/;
@@ -41,9 +42,11 @@ type LanguageRowProps = {
   language: LanguageResponse;
   onEdit: (l: LanguageResponse) => void;
   onDelete: (l: LanguageResponse) => void;
+  canWrite?: boolean;
+  canDelete?: boolean;
 };
 
-function SortableLanguageRow({ language, onEdit, onDelete }: LanguageRowProps) {
+function SortableLanguageRow({ language, onEdit, onDelete, canWrite = true, canDelete = true }: LanguageRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: language.id });
   const style = {
@@ -58,14 +61,16 @@ function SortableLanguageRow({ language, onEdit, onDelete }: LanguageRowProps) {
       className="hover:bg-gray-50 transition-colors bg-white"
     >
       <td className="px-4 py-4 w-[60px] text-center">
-        <button
-          {...attributes}
-          {...listeners}
-          className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
-          aria-label="순서 변경"
-        >
-          <GripVertical className="w-5 h-5" />
-        </button>
+        {canWrite && (
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
+            aria-label="순서 변경"
+          >
+            <GripVertical className="w-5 h-5" />
+          </button>
+        )}
       </td>
       <td className="px-6 py-4">
         <span className="text-[14px] font-medium text-gray-900">
@@ -79,8 +84,8 @@ function SortableLanguageRow({ language, onEdit, onDelete }: LanguageRowProps) {
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center justify-end gap-2">
-          <EditButton onClick={() => onEdit(language)} />
-          <DeleteButton onClick={() => onDelete(language)} />
+          {canWrite && <EditButton onClick={() => onEdit(language)} />}
+          {canDelete && <DeleteButton onClick={() => onDelete(language)} />}
         </div>
       </td>
     </tr>
@@ -89,6 +94,7 @@ function SortableLanguageRow({ language, onEdit, onDelete }: LanguageRowProps) {
 
 export default function LanguageTab() {
   const queryClient = useQueryClient();
+  const { canWrite, canDelete } = usePagePermission('/countries');
 
   // 페이지네이션 제거 — 순서 변경 기능 추가 시 재도입.
   // const [page, setPage] = useState(0);
@@ -280,7 +286,7 @@ export default function LanguageTab() {
     <div className="flex gap-6">
       <div className="flex-1 flex flex-col gap-4">
         <div className="flex justify-end">
-          {!showForm && (
+          {!showForm && canWrite && (
             <Button
               onClick={() => {
                 setEditing(null);
@@ -366,6 +372,8 @@ export default function LanguageTab() {
                         setShowForm(true);
                       }}
                       onDelete={(target) => setDeleteTarget(target)}
+                      canWrite={canWrite}
+                      canDelete={canDelete}
                     />
                   ))}
                 </SortableContext>

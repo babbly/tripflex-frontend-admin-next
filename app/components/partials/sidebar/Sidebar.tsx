@@ -7,7 +7,6 @@ import {
   Image as ImageIcon,
   MessageSquare,
   HelpCircle,
-  Settings,
   Flag,
   Users,
 } from 'lucide-react';

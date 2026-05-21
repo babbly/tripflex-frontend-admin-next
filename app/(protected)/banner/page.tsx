@@ -24,8 +24,6 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   Edit2,
   GripVertical,
   ImageOff,
@@ -37,13 +35,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PageTitle } from '@/components/ui/page-title';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   AdminTableHead,
   AdminTableHeaderRow,
@@ -57,6 +48,7 @@ import {
   BannerResponse,
 } from '@/types/banner';
 import { ApiError } from '@/types/api';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 type BannerTab = BannerPosition | 'ENDED';
 const TABS: { id: BannerTab; label: string }[] = [
@@ -77,6 +69,8 @@ type RowProps = {
   onEdit: (b: BannerResponse) => void;
   showOrder?: boolean;
   showPosition?: boolean;
+  canWrite?: boolean;
+  canDelete?: boolean;
 };
 
 function SortableTableRow({
@@ -86,6 +80,8 @@ function SortableTableRow({
   onEdit,
   showOrder = true,
   showPosition = false,
+  canWrite = true,
+  canDelete = true,
 }: RowProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: banner.id });
@@ -106,13 +102,15 @@ function SortableTableRow({
     >
       {showOrder && (
         <td className="p-4 w-[80px] text-center">
-          <button
-            {...attributes}
-            {...listeners}
-            className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
-          >
-            <GripVertical className="w-5 h-5" />
-          </button>
+          {canWrite && (
+            <button
+              {...attributes}
+              {...listeners}
+              className="cursor-grab text-gray-400 hover:text-gray-600 focus:outline-none"
+            >
+              <GripVertical className="w-5 h-5" />
+            </button>
+          )}
         </td>
       )}
       {showPosition && (
@@ -154,23 +152,28 @@ function SortableTableRow({
           <Switch
             checked={banner.active}
             onCheckedChange={() => onToggle(banner)}
+            disabled={!canWrite}
           />
         </div>
       </td>
       <td className="p-4">
         <div className="flex items-center space-x-2">
-          <button
-            onClick={() => onEdit(banner)}
-            className="p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
-          >
-            <Edit2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onDelete(banner)}
-            className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {canWrite && (
+            <button
+              onClick={() => onEdit(banner)}
+              className="p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              onClick={() => onDelete(banner)}
+              className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </td>
     </tr>
@@ -180,6 +183,7 @@ function SortableTableRow({
 export default function BannerPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { canRead, canWrite, canDelete } = usePagePermission('/banner');
 
   const [activeTab, setActiveTab] = useState<BannerTab>('TOP');
   const [keyword, setKeyword] = useState('');
@@ -231,7 +235,6 @@ export default function BannerPage() {
   }, [queryKey.join('|')]);
 
   const banners = localOrder ?? data?.content ?? [];
-  const totalPages = data?.totalPages ?? 0;
 
   const toggleMutation = useMutation({
     mutationFn: (b: BannerResponse) =>
@@ -314,6 +317,14 @@ export default function BannerPage() {
   const handleDelete = (b: BannerResponse) => {
     setDeleteTarget(b);
   };
+
+  if (!canRead) {
+    return (
+      <div className="w-full flex items-center justify-center py-20 text-[15px] text-gray-400">
+        접근 권한이 없습니다.
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col gap-[24px]">
@@ -404,7 +415,7 @@ export default function BannerPage() {
           </div>
         </div>
 
-        {!isEnded && (
+        {!isEnded && canWrite && (
           <Link href={`/banner/create?position=${activeTab}`}>
             <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
               <Plus className="w-4 h-4 mr-2" />
@@ -483,6 +494,8 @@ export default function BannerPage() {
                         onEdit={(b) => router.push(`/banner/${b.id}`)}
                         showOrder={!isEnded}
                         showPosition={isEnded}
+                        canWrite={canWrite}
+                        canDelete={canDelete}
                       />
                     ))}
                   </SortableContext>

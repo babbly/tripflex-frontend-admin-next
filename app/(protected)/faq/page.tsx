@@ -31,10 +31,12 @@ import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { faqApi } from '@/lib/faq-api';
 import { FaqResponse } from '@/types/faq';
 import { ApiError } from '@/types/api';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 export default function FAQPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { canRead, canWrite, canDelete } = usePagePermission('/faq');
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
@@ -63,6 +65,14 @@ export default function FAQPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<FaqResponse | null>(null);
 
+  if (!canRead) {
+    return (
+      <div className="w-full flex items-center justify-center py-20 text-[15px] text-gray-400">
+        접근 권한이 없습니다.
+      </div>
+    );
+  }
+
   return (
     <div className="w-full flex flex-col gap-[24px]">
       <div className="flex justify-between items-center">
@@ -85,12 +95,14 @@ export default function FAQPage() {
               <SelectItem value="50">50</SelectItem>
             </SelectContent>
           </Select>
-          <Link href="/faq/create">
-            <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
-              <Plus className="w-4 h-4 mr-2" />
-              FAQ 추가
-            </Button>
-          </Link>
+          {canWrite && (
+            <Link href="/faq/create">
+              <Button className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] leading-normal h-[40px]">
+                <Plus className="w-4 h-4 mr-2" />
+                FAQ 추가
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -141,22 +153,26 @@ export default function FAQPage() {
                   </AccordionTrigger>
 
                   <div className="absolute right-14 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/faq/${faq.id}`);
-                      }}
-                      className="block"
-                    >
-                      <EditButton />
-                    </button>
-                    <DeleteButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteTarget(faq);
-                      }}
-                    />
+                    {canWrite && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/faq/${faq.id}`);
+                        }}
+                        className="block"
+                      >
+                        <EditButton />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <DeleteButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget(faq);
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
 

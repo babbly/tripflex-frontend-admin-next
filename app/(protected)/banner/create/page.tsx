@@ -22,6 +22,7 @@ import { bannerApi } from '@/lib/banner-api';
 import { BANNER_POSITIONS, BannerPosition } from '@/types/banner';
 import { ApiError } from '@/types/api';
 import { ImageLightbox } from '@/components/ui/image-lightbox';
+import { usePagePermission } from '@/hooks/use-page-permission';
 
 function toIsoStart(date: string) {
   return date ? `${date}T00:00:00` : undefined;
@@ -36,6 +37,7 @@ const URL_PATTERN = /^https?:\/\/.+/i;
 
 export default function BannerCreatePage() {
   const router = useRouter();
+  const { canWrite } = usePagePermission('/banner');
   const searchParams = useSearchParams();
   const initialPosition = (searchParams.get('position') as BannerPosition) || 'TOP';
   const position: BannerPosition = BANNER_POSITIONS.includes(initialPosition)
