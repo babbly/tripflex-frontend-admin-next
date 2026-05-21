@@ -85,6 +85,8 @@ function SortableCountryRow({ country, onEdit, onDelete }: CountryRowProps) {
               alt={country.nameKo}
               className="w-6 h-4 object-cover rounded-sm shadow-sm"
             />
+          ) : country.flagEmoji ? (
+            <span className="text-xl leading-none">{country.flagEmoji}</span>
           ) : (
             <div className="w-6 h-4 bg-gray-100 rounded-sm" />
           )}

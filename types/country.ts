@@ -3,6 +3,7 @@ export type CountryResponse = {
   countryCode: string;
   nameKo: string;
   nameEn: string;
+  flagEmoji?: string;
   flagImageUrl?: string;
   flagImagePath?: string;
   defaultLanguageCode?: string;
