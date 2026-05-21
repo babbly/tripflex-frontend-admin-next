@@ -14,10 +14,10 @@ import { analysisApi } from '@/lib/analysis-api';
 
 const ScanIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" className={className}>
-    <path d="M2 4.66667V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H4.66667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M11.3334 2H12.6667C13.0203 2 13.3595 2.14048 13.6095 2.39052C13.8596 2.64057 14 2.97971 14 3.33333V4.66667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M14 11.332V12.6654C14 13.019 13.8596 13.3581 13.6095 13.6082C13.3595 13.8582 13.0203 13.9987 12.6667 13.9987H11.3334" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M4.66667 13.9987H3.33333C2.97971 13.9987 2.64057 13.8582 2.39052 13.6082C2.14048 13.3581 2 13.019 2 12.6654V11.332" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M2 4.66667V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H4.66667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M11.3334 2H12.6667C13.0203 2 13.3595 2.14048 13.6095 2.39052C13.8596 2.64057 14 2.97971 14 3.33333V4.66667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M14 11.332V12.6654C14 13.019 13.8596 13.3581 13.6095 13.6082C13.3595 13.8582 13.0203 13.9987 12.6667 13.9987H11.3334" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M4.66667 13.9987H3.33333C2.97971 13.9987 2.64057 13.8582 2.39052 13.6082C2.14048 13.3581 2 13.019 2 12.6654V11.332" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -178,27 +178,27 @@ export default function ImageAnalysisDetailPage() {
 
           <div className="flex items-center space-x-8 border-t border-gray-50 pt-6">
             <div className="min-w-[60px]">
-              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">이미지 처리(s)</div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">이미지 처리</div>
               <div className="text-[15px] font-bold text-gray-900">{msToSec(data.imageUploadMs)}</div>
             </div>
             <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[60px]">
-              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">OCR(s)</div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">OCR</div>
               <div className="text-[15px] font-bold text-gray-900">{msToSec(data.ocrMs)}</div>
             </div>
             <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[60px]">
-              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">AI(s)</div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">AI</div>
               <div className="text-[15px] font-bold text-gray-900">{msToSec(data.aiMs)}</div>
             </div>
             <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[60px]">
-              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">번역(s)</div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">번역</div>
               <div className="text-[15px] font-bold text-gray-900">{msToSec(data.translateMs)}</div>
             </div>
             <Separator orientation="vertical" className="h-8 bg-gray-200" />
             <div className="min-w-[60px]">
-              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">총 합(s)</div>
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5 uppercase tracking-tight">총 합</div>
               <div className="text-[15px] font-bold text-gray-900">{msToSec(data.totalMs)}</div>
             </div>
           </div>
@@ -258,11 +258,10 @@ export default function ImageAnalysisDetailPage() {
                     />
                   </AspectRatio>
                   <span
-                    className={`absolute top-2 right-2 text-[11px] font-[600] px-2 py-0.5 rounded-full ${
-                      img.recognized
+                    className={`absolute top-2 right-2 text-[11px] font-[600] px-2 py-0.5 rounded-full ${img.recognized
                         ? 'bg-green-100 text-green-700'
                         : 'bg-gray-100 text-gray-500'
-                    }`}
+                      }`}
                   >
                     {img.recognized ? '인식됨' : '미인식'}
                   </span>

@@ -174,7 +174,7 @@ export default function ImageAnalysisPage() {
                 placeholder="시작 날짜"
                 value={startDate}
                 onChange={(e) => { setStartDate(e.target.value); setPage(0); }}
-                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch {}}}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch { } }}
                 onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
                 max={endDate || undefined}
               />
@@ -190,7 +190,7 @@ export default function ImageAnalysisPage() {
                 placeholder="종료 날짜"
                 value={endDate}
                 onChange={(e) => { setEndDate(e.target.value); setPage(0); }}
-                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch {}}}
+                onFocus={(e) => { e.target.type = 'date'; try { e.target.showPicker(); } catch { } }}
                 onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
                 min={startDate || undefined}
               />
@@ -250,14 +250,16 @@ export default function ImageAnalysisPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Button
-              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-4"
+              disabled={records.length === 0}
+              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-4 disabled:bg-[#E4E4E7] disabled:text-[#A1A1AA] disabled:cursor-not-allowed"
               onClick={() => toast.info('전체 IMAGE 다운로드는 준비 중입니다.')}
             >
               <Download className="w-4 h-4 mr-2" />
               전체 IMAGE 다운로드
             </Button>
             <Button
-              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-4"
+              disabled={records.length === 0}
+              className="bg-[#4186FF] hover:bg-blue-600 text-white text-[14px] font-[600] h-10 px-4 disabled:bg-[#E4E4E7] disabled:text-[#A1A1AA] disabled:cursor-not-allowed"
               onClick={() => toast.info('전체 JSON 다운로드는 준비 중입니다.')}
             >
               <Download className="w-4 h-4 mr-2" />
@@ -289,11 +291,11 @@ export default function ImageAnalysisPage() {
                 <AdminTableHead className="px-6 py-4">디바이스 ID</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">국가</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">분석 일시</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">이미지 처리(s)</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">OCR(s)</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">AI(s)</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">번역(s)</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">총합(s)</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">이미지 처리</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">OCR</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">AI</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">번역</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">총합</AdminTableHead>
                 <AdminTableHead className="px-6 py-4 text-center">JSON</AdminTableHead>
                 <AdminTableHead className="px-6 py-4 text-center">상세</AdminTableHead>
               </AdminTableHeaderRow>
