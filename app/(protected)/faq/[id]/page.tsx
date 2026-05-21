@@ -43,14 +43,11 @@ export default function FAQEditPage() {
   const { id } = useParams();
   const faqId = id as string;
 
-  const [category, setCategory] = useState('');
   const [question, setQuestion] = useState('');
   const [isActive, setIsActive] = useState(true);
-  const [locale, setLocale] = useState('');
   const [answerText, setAnswerText] = useState('');
   const [cancelOpen, setCancelOpen] = useState(false);
 
-  const [initCategory, setInitCategory] = useState('');
   const [initQuestion, setInitQuestion] = useState('');
   const [initIsActive, setInitIsActive] = useState(true);
   const [editorModified, setEditorModified] = useState(false);
@@ -68,28 +65,23 @@ export default function FAQEditPage() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     if (!data || hydrated) return;
-    setCategory(data.category ?? '');
     setQuestion(data.question ?? '');
     setIsActive(data.active);
-    setLocale(data.locale ?? '');
     if (editorRef.current) {
       editorRef.current.innerHTML = data.answer ?? '';
     }
     const plainText = (data.answer ?? '').replace(/<[^>]+>/g, '').trim();
     setAnswerText(plainText);
-    setInitCategory(data.category ?? '');
     setInitQuestion(data.question ?? '');
     setInitIsActive(data.active);
     setHydrated(true);
   }, [data, hydrated]);
 
   const isFormValid =
-    category.trim().length > 0 &&
     question.trim().length > 0 &&
     answerText.trim().length > 0;
 
   const isDirty =
-    category !== initCategory ||
     question !== initQuestion ||
     isActive !== initIsActive ||
     editorModified;
@@ -195,7 +187,6 @@ export default function FAQEditPage() {
     mutationFn: () => {
       const answer = editorRef.current?.innerHTML ?? '';
       return faqApi.update(faqId, {
-        category: category.trim(),
         question: question.trim(),
         answer,
         active: isActive,
@@ -287,34 +278,6 @@ export default function FAQEditPage() {
         <div className="space-y-5">
           <h2 className="text-[16px] font-[700] text-[#18181B]">기본 정보</h2>
           <div className="w-full h-[1px] bg-[#E4E4E7]" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="space-y-2">
-            <label className="text-[14px] font-[600] text-[#18181B]">
-              카테고리 <span className="text-red-500">*</span>
-            </label>
-            <Input
-              placeholder="예: 이용방법"
-              maxLength={50}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="h-[44px] border-[#E4E4E7]"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[14px] font-[600] text-[#18181B]">
-              언어
-            </label>
-            <Input
-              value={locale}
-              readOnly
-              className="h-[44px] border-[#E4E4E7] bg-gray-50 text-gray-500"
-            />
-            <p className="text-[11px] text-gray-400">
-              언어는 등록 시 결정되며 수정할 수 없습니다.
-            </p>
-          </div>
         </div>
 
         <div className="space-y-2">

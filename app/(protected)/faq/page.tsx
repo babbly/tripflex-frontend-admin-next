@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Search,
 } from 'lucide-react';
 import { PageTitle } from '@/components/ui/page-title';
 import { Button } from '@/components/ui/button';
@@ -30,11 +29,7 @@ import {
 } from '@/components/ui/select';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { faqApi } from '@/lib/faq-api';
-import {
-  FAQ_LOCALES,
-  FAQ_LOCALE_LABELS,
-  FaqResponse,
-} from '@/types/faq';
+import { FaqResponse } from '@/types/faq';
 import { ApiError } from '@/types/api';
 
 export default function FAQPage() {
@@ -43,22 +38,11 @@ export default function FAQPage() {
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState('10');
-  const [locale, setLocale] = useState<string>('');
-  const [category, setCategory] = useState('');
-  const [activeOnly, setActiveOnly] = useState(false);
-
   const size = parseInt(pageSize, 10);
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['faqs', { page, size, locale, category, activeOnly }],
-    queryFn: () =>
-      faqApi.list({
-        page,
-        size,
-        locale: locale || undefined,
-        category: category || undefined,
-        activeOnly: activeOnly || undefined,
-      }),
+    queryKey: ['faqs', { page, size }],
+    queryFn: () => faqApi.list({ page, size }),
   });
 
   const deleteMutation = useMutation({
@@ -93,56 +77,6 @@ export default function FAQPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-[12px]">
-        <Select
-          value={locale || 'ALL'}
-          onValueChange={(v) => {
-            setLocale(v === 'ALL' ? '' : v);
-            setPage(0);
-          }}
-        >
-          <SelectTrigger className="w-[140px] h-10 text-sm">
-            <SelectValue placeholder="언어 전체" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">언어 전체</SelectItem>
-            {FAQ_LOCALES.map((l) => (
-              <SelectItem key={l} value={l}>
-                {FAQ_LOCALE_LABELS[l]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="flex items-center w-[260px] h-[40px] px-[14px] gap-[8px] rounded-[6px] border border-[#E4E4E7] bg-white">
-          <Search className="w-4 h-4 text-[#71717A] shrink-0" />
-          <input
-            type="text"
-            className="w-full bg-transparent outline-none text-[14px] placeholder:text-[#71717A] text-[#18181B]"
-            placeholder="카테고리 필터"
-            value={category}
-            onChange={(e) => {
-              setCategory(e.target.value);
-              setPage(0);
-            }}
-          />
-        </div>
-
-        <Select
-          value={activeOnly ? 'ACTIVE' : 'ALL'}
-          onValueChange={(v) => {
-            setActiveOnly(v === 'ACTIVE');
-            setPage(0);
-          }}
-        >
-          <SelectTrigger className="w-[120px] h-10 text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">전체</SelectItem>
-            <SelectItem value="ACTIVE">활성</SelectItem>
-          </SelectContent>
-        </Select>
-
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[13px] text-gray-500">페이지당</span>
           <Select
@@ -198,12 +132,6 @@ export default function FAQPage() {
                 <div className="relative">
                   <AccordionTrigger className="flex items-center justify-between px-6 py-5 hover:no-underline text-left text-[16px] font-[700] text-[#18181B] border-none w-full">
                     <div className="flex items-center gap-3 flex-1 pr-24 min-w-0">
-                      <span className="shrink-0 inline-flex items-center text-[11px] font-[600] px-2 py-0.5 rounded bg-[#EEF1FF] text-[#4186FF]">
-                        {faq.category}
-                      </span>
-                      <span className="shrink-0 inline-flex items-center text-[11px] font-[500] text-gray-500 uppercase">
-                        {faq.locale}
-                      </span>
                       {!faq.active && (
                         <span className="shrink-0 inline-flex items-center text-[11px] font-[600] px-2 py-0.5 rounded bg-gray-100 text-gray-500">
                           비활성

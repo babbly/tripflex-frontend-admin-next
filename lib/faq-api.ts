@@ -10,7 +10,7 @@ import type { PageResponse } from '@/types/api';
 function toQuery(params: FaqListParams): string {
   const q = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
-    if (v === undefined || v === null || v === '') return;
+    if (v === undefined || v === null) return;
     q.set(k, String(v));
   });
   const s = q.toString();

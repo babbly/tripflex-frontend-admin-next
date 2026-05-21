@@ -35,13 +35,10 @@ import {
 } from '@/components/ui/select';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { faqApi } from '@/lib/faq-api';
-import { FAQ_LOCALES, FAQ_LOCALE_LABELS } from '@/types/faq';
 import { ApiError } from '@/types/api';
 
 export default function FAQCreatePage() {
   const router = useRouter();
-  const [category, setCategory] = useState('');
-  const [locale, setLocale] = useState<string>('ko');
   const [question, setQuestion] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [answerText, setAnswerText] = useState('');
@@ -52,12 +49,10 @@ export default function FAQCreatePage() {
   const lastRange = useRef<Range | null>(null);
 
   const isFormValid =
-    category.trim().length > 0 &&
     question.trim().length > 0 &&
     answerText.trim().length > 0;
 
   const hasDirtyInput =
-    category.trim().length > 0 ||
     question.trim().length > 0 ||
     answerText.trim().length > 0;
 
@@ -162,10 +157,8 @@ export default function FAQCreatePage() {
     mutationFn: () => {
       const answer = editorRef.current?.innerHTML ?? '';
       return faqApi.create({
-        category: category.trim(),
         question: question.trim(),
         answer,
-        locale,
         active: isActive,
       });
     },
@@ -242,38 +235,6 @@ export default function FAQCreatePage() {
         <div className="space-y-5">
           <h2 className="text-[16px] font-[700] text-[#18181B]">기본 정보</h2>
           <div className="w-full h-[1px] bg-[#E4E4E7]" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="space-y-2">
-            <label className="text-[14px] font-[600] text-[#18181B]">
-              카테고리 <span className="text-red-500">*</span>
-            </label>
-            <Input
-              placeholder="예: 이용방법"
-              maxLength={50}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="h-[44px] border-[#E4E4E7]"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[14px] font-[600] text-[#18181B]">
-              언어 <span className="text-red-500">*</span>
-            </label>
-            <Select value={locale} onValueChange={setLocale}>
-              <SelectTrigger className="h-[44px] border-[#E4E4E7]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {FAQ_LOCALES.map((l) => (
-                  <SelectItem key={l} value={l}>
-                    {FAQ_LOCALE_LABELS[l]} ({l})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
         <div className="space-y-2">
