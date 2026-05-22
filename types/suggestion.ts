@@ -2,8 +2,8 @@ export const SUGGESTION_STATUSES = ['PENDING', 'REVIEWED'] as const;
 export type SuggestionStatus = (typeof SUGGESTION_STATUSES)[number];
 
 export const SUGGESTION_STATUS_LABELS: Record<SuggestionStatus, string> = {
-  PENDING: '미처리',
-  REVIEWED: '처리됨',
+  PENDING: '미확인',
+  REVIEWED: '확인완료',
 };
 
 export type SuggestionSummary = {

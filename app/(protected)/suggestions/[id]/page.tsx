@@ -43,7 +43,7 @@ const ScanIcon = ({ className }: { className?: string }) => (
 
 const DETAIL_STATUS_OPTIONS: { value: 'PENDING' | 'REVIEWED'; label: string }[] = [
   { value: 'PENDING', label: '미확인' },
-  { value: 'REVIEWED', label: '확인 완료' },
+  { value: 'REVIEWED', label: '확인완료' },
 ];
 
 function formatDateTime(iso?: string) {
