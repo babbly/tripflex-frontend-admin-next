@@ -290,21 +290,19 @@ export default function ImageAnalysisPage() {
             </Select>
 
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>처리시간</span>
+              <span>처리시간 범위</span>
               <Input
                 type="number"
-                min={0}
-                className="w-[60px] h-10 border-gray-200 text-center text-[#71717A]"
-                placeholder="0"
+                className="w-[60px] h-10 border-gray-200 text-center text-[#71717A] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                placeholder="최소"
                 value={latencyMinInput}
                 onChange={(e) => setLatencyMinInput(e.target.value)}
               />
               <span>~</span>
               <Input
                 type="number"
-                min={0}
-                className="w-[60px] h-10 border-gray-200 text-center text-[#71717A]"
-                placeholder="10"
+                className="w-[60px] h-10 border-gray-200 text-center text-[#71717A] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                placeholder="최대"
                 value={latencyMaxInput}
                 onChange={(e) => setLatencyMaxInput(e.target.value)}
               />
@@ -360,28 +358,27 @@ export default function ImageAnalysisPage() {
             <thead>
               <AdminTableHeaderRow>
                 <AdminTableHead className="px-6 py-4">디바이스 ID</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">국가</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">상태</AdminTableHead>
+                <AdminTableHead className="px-6 py-4 w-[180px]">국가</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">분석 일시</AdminTableHead>
-                <AdminTableHead className="px-6 py-4">이미지 처리</AdminTableHead>
+                <AdminTableHead className="px-6 py-4 w-[90px]">이미지<br />처리시간</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">OCR</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">AI</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">번역</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">총합</AdminTableHead>
-                <AdminTableHead className="px-6 py-4 text-center">JSON</AdminTableHead>
-                <AdminTableHead className="px-6 py-4 text-center">상세</AdminTableHead>
+                <AdminTableHead className="px-3 py-4 text-center w-[80px]">JSON</AdminTableHead>
+                <AdminTableHead className="px-3 py-4 text-center w-[80px]">상세</AdminTableHead>
               </AdminTableHeaderRow>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-12 text-center text-sm text-gray-400">
+                  <td colSpan={10} className="px-6 py-12 text-center text-sm text-gray-400">
                     불러오는 중...
                   </td>
                 </tr>
               ) : records.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-12 text-center text-sm text-gray-400">
+                  <td colSpan={10} className="px-6 py-12 text-center text-sm text-gray-400">
                     {deviceId || status || countryCode || startDate || endDate || latencyType
                       ? '검색 결과가 없습니다.'
                       : '분석 데이터가 없습니다.'}
@@ -399,16 +396,6 @@ export default function ImageAnalysisPage() {
                         <span>{record.countryName}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-[600] ${
-                        record.status === 'COMPLETED' ? 'bg-green-50 text-green-700' :
-                        record.status === 'FAILED' ? 'bg-red-50 text-red-600' :
-                        record.status === 'PROCESSING' ? 'bg-blue-50 text-blue-600' :
-                        'bg-gray-100 text-gray-500'
-                      }`}>
-                        {ANALYSIS_STATUS_OPTIONS.find((o) => o.value === record.status)?.label ?? record.status}
-                      </span>
-                    </td>
                     <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                       {formatDateTime(record.insDttm)}
                     </td>
@@ -417,20 +404,20 @@ export default function ImageAnalysisPage() {
                     <td className="px-6 py-4 text-sm text-gray-600">{msToSec(record.aiMs)}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{msToSec(record.translateMs)}</td>
                     <td className="px-6 py-4 text-sm text-gray-600 font-medium">{msToSec(record.totalMs)}</td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-3 py-4 text-center">
                       <Button
                         variant="ghost"
-                        className="bg-[#EEF1FF] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] text-[13px] font-[600] px-4 h-8 rounded-[4px]"
+                        className="bg-[#EEF1FF] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] text-[13px] font-[600] px-3 h-8 rounded-[4px]"
                         onClick={() => handleRowDownloadJson(record.id)}
                       >
                         다운로드
                       </Button>
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-3 py-4 text-center">
                       <Link href={`/image-analysis/${record.id}`}>
                         <Button
                           variant="ghost"
-                          className="bg-[#EEF1FF] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] text-[13px] font-[600] px-4 h-8 rounded-[4px]"
+                          className="bg-[#EEF1FF] text-[#4186FF] hover:bg-[#E0EFFF] hover:text-[#4186FF] text-[13px] font-[600] px-3 h-8 rounded-[4px]"
                         >
                           보기
                         </Button>
