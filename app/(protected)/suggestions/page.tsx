@@ -332,8 +332,8 @@ export default function SuggestionsPage() {
                 <AdminTableHead className="px-6 py-4">태그</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">상세 내용</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">제안 일시</AdminTableHead>
-                <AdminTableHead className="px-6 py-4 text-center">상태</AdminTableHead>
-                <AdminTableHead className="px-6 py-4 w-24 text-right">상세</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">상태</AdminTableHead>
+                <AdminTableHead className="px-6 py-4 w-24">상세</AdminTableHead>
               </AdminTableHeaderRow>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -394,7 +394,7 @@ export default function SuggestionsPage() {
                     <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                       {formatDateTime(r.insDttm)}
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-6 py-4">
                       <Badge
                         variant="secondary"
                         className={`font-semibold text-[11px] ${
@@ -408,7 +408,7 @@ export default function SuggestionsPage() {
                         {SUGGESTION_STATUS_LABELS[statusKey] || r.status}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4">
                       <Link href={`/suggestions/${r.id}`}>
                         <Button
                           variant="ghost"

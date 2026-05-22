@@ -22,6 +22,7 @@ import { SuggestionStatus } from '@/types/suggestion';
 import { ApiError } from '@/types/api';
 import { usePagePermission } from '@/hooks/use-page-permission';
 
+
 const ScanPlaceholderIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" className={className}>
     <path d="M6 14V10C6 8.93913 6.42143 7.92172 7.17157 7.17157C7.92172 6.42143 8.93913 6 10 6H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -70,7 +71,7 @@ export default function SuggestionDetailPage() {
   const categories = catData?.content ?? [];
 
   const [newComment, setNewComment] = useState('');
-  const [adminNote, setAdminNote] = useState('');
+  const [adminNote] = useState('');
 
   const reviewMutation = useMutation({
     mutationFn: (status: SuggestionStatus) =>
@@ -185,15 +186,6 @@ export default function SuggestionDetailPage() {
       toast.error(e instanceof ApiError ? e.message : '댓글 작성 실패'),
   });
 
-  const toggleConfirmMutation = useMutation({
-    mutationFn: (commentId: string) =>
-      suggestionApi.toggleCommentConfirm(suggestionId, commentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['suggestion', suggestionId] });
-    },
-    onError: (e) =>
-      toast.error(e instanceof ApiError ? e.message : '상태 변경 실패'),
-  });
 
   if (isLoading) {
     return (
@@ -295,49 +287,27 @@ export default function SuggestionDetailPage() {
             )}
           </div>
 
-          <div>
-            <div className="text-[12px] text-gray-400 font-medium mb-1.5">카테고리</div>
-            <Badge className="bg-[#EEF1FF] text-[#4186FF] text-[11px] font-[600] border-none shadow-none px-3 py-1">
-              {data.categoryName || cat?.shortName || cat?.fullName || '-'}
-            </Badge>
-          </div>
-
-          <div>
-            <div className="text-[12px] text-gray-400 font-medium mb-1.5">상세 내용</div>
-            <div className="text-[14px] text-gray-900 leading-relaxed whitespace-pre-wrap">
-              {data.content}
+          <div className="flex gap-12">
+            <div className="shrink-0">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5">태그</div>
+              <Badge className="bg-[#EEF1FF] text-[#4186FF] text-[11px] font-[600] border-none shadow-none px-3 py-1">
+                {data.categoryName || cat?.shortName || cat?.fullName || '-'}
+              </Badge>
             </div>
-          </div>
 
-          {data.adminNote && (
-            <div>
-              <div className="text-[12px] text-gray-400 font-medium mb-1.5">처리 메모</div>
-              <div className="text-[14px] text-gray-700 leading-relaxed bg-[#F8F9FB] rounded-lg p-3">
-                {data.adminNote}
+            <div className="min-w-0">
+              <div className="text-[12px] text-gray-400 font-medium mb-1.5">상세 내용</div>
+              <div className="text-[14px] text-gray-900 leading-relaxed whitespace-pre-wrap">
+                {data.content}
               </div>
             </div>
-          )}
-        </div>
-
-        <div>
-            <div className="text-[12px] text-gray-400 font-medium mb-1.5">
-              처리 메모 (선택)
-            </div>
-            <textarea
-              value={adminNote}
-              onChange={(e) => setAdminNote(e.target.value)}
-              placeholder="처리 메모를 입력하시면 위의 처리 버튼과 함께 저장됩니다."
-              disabled={!canWrite}
-              className="w-full bg-[#F8F9FB] rounded-lg p-4 text-[13px] text-gray-600 min-h-[60px] outline-none focus:ring-1 focus:ring-blue-100 placeholder:text-gray-400 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-            />
           </div>
+
+        </div>
 
         <div className="space-y-4">
           <div className="text-[12px] text-gray-400 font-medium">담당자 의견</div>
           <div className="space-y-3">
-            {(data.comments ?? []).length === 0 && (
-              <div className="text-[13px] text-gray-400">아직 작성된 의견이 없습니다.</div>
-            )}
             {(data.comments ?? []).map((comment) => (
               <div key={comment.id} className="space-y-1.5">
                 <div className="flex items-center gap-2">
@@ -347,16 +317,6 @@ export default function SuggestionDetailPage() {
                   <span className="text-[12px] text-gray-400">
                     {formatDateTime(comment.insDttm)}
                   </span>
-                  <Badge
-                    onClick={() => canWrite && toggleConfirmMutation.mutate(comment.id)}
-                    className={`text-[10px] font-[600] border-none shadow-none px-2 py-0.5 ${canWrite ? 'cursor-pointer' : 'cursor-default'} ${
-                      comment.confirmed
-                        ? 'bg-[#EEF1FF] text-[#4186FF] hover:bg-[#E0EFFF]'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                    }`}
-                  >
-                    {comment.confirmed ? '확인완료' : '미확인'}
-                  </Badge>
                 </div>
                 <div className="bg-[#F8F9FB] rounded-lg p-3 text-[13px] text-gray-600 whitespace-pre-wrap">
                   {comment.content}
@@ -436,13 +396,13 @@ export default function SuggestionDetailPage() {
                 </div>
               )}
             </AspectRatio>
-            <div className="flex flex-col space-y-2">
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 onClick={handleDownloadAnalysisImage}
                 disabled={!data.analysisImageUrl}
                 style={!data.analysisImageUrl ? { backgroundColor: '#E4E4E7', color: '#A1A1AA' } : undefined}
-                className="w-full h-8 border-gray-100 text-[11px] font-[600] px-2 disabled:hover:bg-[#E4E4E7]"
+                className="flex-1 h-8 border-gray-100 text-[11px] font-[600] px-2 disabled:hover:bg-[#E4E4E7]"
               >
                 <Download className="w-3 h-3 mr-1" />
                 이미지
@@ -450,7 +410,7 @@ export default function SuggestionDetailPage() {
               <Button
                 variant="outline"
                 onClick={handleDownloadAnalysisJson}
-                className="w-full h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2"
+                className="flex-1 h-8 border-gray-100 hover:bg-gray-50 text-gray-500 text-[11px] font-[600] px-2"
               >
                 <Download className="w-3 h-3 mr-1" />
                 JSON
@@ -465,26 +425,7 @@ export default function SuggestionDetailPage() {
           <h2 className="text-[16px] font-[700] text-gray-900">원본 이미지</h2>
         </div>
         {imageUrls.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <div key={`original-empty-${index}`} className="flex flex-col space-y-3">
-                <AspectRatio ratio={206 / 145}>
-                  <div className="bg-gray-100 rounded-lg flex items-center justify-center border border-gray-100 w-full h-full">
-                    <ImageIcon className="w-8 h-8 text-gray-300" />
-                  </div>
-                </AspectRatio>
-                <Button
-                  variant="outline"
-                  disabled
-                  style={{ backgroundColor: '#E4E4E7', color: '#A1A1AA' }}
-                  className="w-full h-8 border-gray-100 text-[11px] font-[600] px-2 disabled:hover:bg-[#E4E4E7]"
-                >
-                  <Download className="w-3 h-3 mr-1" />
-                  이미지
-                </Button>
-              </div>
-            ))}
-          </div>
+          <div className="text-[13px] text-gray-400">이미지가 없습니다.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
             {imageUrls.map((url, index) => (
