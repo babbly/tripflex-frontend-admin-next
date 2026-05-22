@@ -34,6 +34,7 @@ import { currencyApi } from '@/lib/currency-api';
 import { countryApi } from '@/lib/country-api';
 import { countryCurrencyMappingApi } from '@/lib/country-currency-mapping-api';
 import { CurrencyResponse } from '@/types/currency';
+import { CountryResponse } from '@/types/country';
 import { ApiError } from '@/types/api';
 import { usePagePermission } from '@/hooks/use-page-permission';
 
@@ -108,11 +109,6 @@ export default function CurrencyTab() {
     queryFn: () => currencyApi.list({ page: 0, size: FETCH_SIZE }),
   });
 
-  const { data: countryData } = useQuery({
-    queryKey: ['countries-all-for-currency'],
-    queryFn: () => countryApi.list({ page: 0, size: 500 }),
-  });
-  const allCountries = countryData?.content ?? [];
 
   const [localOrder, setLocalOrder] = useState<CurrencyResponse[] | null>(null);
   useEffect(() => {
@@ -167,6 +163,8 @@ export default function CurrencyTab() {
   const [currencyCodeError, setCurrencyCodeError] = useState<string>('');
   const [countrySearch, setCountrySearch] = useState('');
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
+  const [countryCache, setCountryCache] = useState<Record<string, CountryResponse>>({});
+  const [debouncedCountrySearch, setDebouncedCountrySearch] = useState('');
   const countrySearchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -195,6 +193,46 @@ export default function CurrencyTab() {
     setCountrySearch('');
     setCountryDropdownOpen(false);
   }, [editing]);
+
+  const { data: countrySearchData } = useQuery({
+    queryKey: ['countries-search', debouncedCountrySearch],
+    queryFn: () => countryApi.list({ page: 0, size: 20, keyword: debouncedCountrySearch || undefined }),
+    enabled: countryDropdownOpen,
+  });
+  const countrySearchResults = countrySearchData?.content ?? [];
+
+  const { data: editingCountryData } = useQuery({
+    queryKey: ['countries-for-edit', (editing?.countryIds ?? []).join(',')],
+    queryFn: () => countryApi.list({ page: 0, size: 100 }),
+    enabled: showForm && !!editing && (editing.countryIds?.length ?? 0) > 0,
+  });
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedCountrySearch(countrySearch), 300);
+    return () => clearTimeout(t);
+  }, [countrySearch]);
+
+  useEffect(() => {
+    const countries = countrySearchData?.content ?? [];
+    if (countries.length > 0) {
+      setCountryCache((prev) => {
+        const next = { ...prev };
+        countries.forEach((c) => { next[c.id] = c; });
+        return next;
+      });
+    }
+  }, [countrySearchData]);
+
+  useEffect(() => {
+    const countries = editingCountryData?.content ?? [];
+    if (countries.length > 0) {
+      setCountryCache((prev) => {
+        const next = { ...prev };
+        countries.forEach((c) => { next[c.id] = c; });
+        return next;
+      });
+    }
+  }, [editingCountryData]);
 
   const syncMappings = async (
     currencyId: string,
@@ -520,7 +558,7 @@ export default function CurrencyTab() {
                     }}
                   >
                     {selectedCountryIds.map((id) => {
-                      const country = allCountries.find((c) => c.id === id);
+                      const country = countryCache[id];
                       if (!country) return null;
                       return (
                         <span
@@ -556,19 +594,20 @@ export default function CurrencyTab() {
                     />
                   </div>
                   {countryDropdownOpen && (
-                    <div className="absolute z-10 top-[calc(100%+4px)] left-0 right-0 bg-white border border-gray-200 rounded-md shadow-md max-h-[180px] overflow-y-auto">
+                    <div className="absolute z-10 top-[calc(100%+4px)] left-0 right-0 bg-white border border-gray-200 rounded-md shadow-md max-h-[108px] overflow-y-auto">
                       {(() => {
-                        const filtered = allCountries.filter(
+                        const search = countrySearch.trim();
+                        const filtered = countrySearchResults.filter(
                           (c) =>
                             !selectedCountryIds.includes(c.id) &&
-                            (countrySearch.trim() === '' ||
-                              c.nameKo.includes(countrySearch.trim()) ||
-                              c.nameEn.toLowerCase().includes(countrySearch.trim().toLowerCase())),
+                            (search === '' ||
+                              c.nameKo.includes(search) ||
+                              c.nameEn.toLowerCase().includes(search.toLowerCase())),
                         );
                         if (filtered.length === 0) {
                           return (
                             <p className="px-3 py-2 text-[12px] text-gray-400">
-                              {allCountries.length === 0 ? '등록된 국가가 없습니다.' : '검색 결과가 없습니다.'}
+                              검색 결과가 없습니다.
                             </p>
                           );
                         }

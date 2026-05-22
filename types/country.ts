@@ -42,6 +42,7 @@ export type CountryListParams = {
   page?: number;
   size?: number;
   activeOnly?: boolean;
+  keyword?: string;
 };
 
 export type FlagUploadUrlRequest = {
