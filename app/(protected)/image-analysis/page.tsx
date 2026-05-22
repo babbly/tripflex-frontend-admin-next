@@ -18,8 +18,15 @@ import {
 } from '@/components/ui/select';
 import { analysisApi } from '@/lib/analysis-api';
 import { countryApi } from '@/lib/country-api';
-import type { LatencyType } from '@/types/analysis';
+import type { AnalysisStatus, LatencyType } from '@/types/analysis';
 import { usePagePermission } from '@/hooks/use-page-permission';
+
+const ANALYSIS_STATUS_OPTIONS: { label: string; value: AnalysisStatus }[] = [
+  { label: '대기', value: 'PENDING' },
+  { label: '처리 중', value: 'PROCESSING' },
+  { label: '완료', value: 'COMPLETED' },
+  { label: '실패', value: 'FAILED' },
+];
 
 const LATENCY_OPTIONS: { label: string; value: LatencyType }[] = [
   { label: '이미지 처리 (Vision)', value: 'VISION' },
@@ -60,6 +67,7 @@ export default function ImageAnalysisPage() {
 
   const [deviceIdInput, setDeviceIdInput] = useState('');
   const [deviceId, setDeviceId] = useState('');
+  const [status, setStatus] = useState('');
   const [countryCode, setCountryCode] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -82,6 +90,7 @@ export default function ImageAnalysisPage() {
       'admin-analyses',
       page,
       size,
+      status,
       deviceId,
       countryCode,
       startDate,
@@ -94,6 +103,7 @@ export default function ImageAnalysisPage() {
       analysisApi.list({
         page,
         size,
+        status: (status as AnalysisStatus) || undefined,
         deviceId: deviceId || undefined,
         countryCode: countryCode || undefined,
         startDate: startDate || undefined,
@@ -122,6 +132,7 @@ export default function ImageAnalysisPage() {
   }
 
   const currentFilters = {
+    status: (status as AnalysisStatus) || undefined,
     deviceId: deviceId || undefined,
     countryCode: countryCode || undefined,
     startDate: startDate || undefined,
@@ -154,9 +165,10 @@ export default function ImageAnalysisPage() {
 
   async function handleDownloadAllJson() {
     try {
-      const { blob, truncated } = await analysisApi.downloadAllJson(currentFilters);
+      const { blob, truncated, totalCount } = await analysisApi.downloadAllJson(currentFilters);
       if (truncated) {
-        toast.warning('1000건 초과로 일부만 포함되었습니다. 필터를 좁혀 다시 시도하세요.');
+        const countMsg = totalCount != null ? ` (전체 ${totalCount.toLocaleString()}건)` : '';
+        toast.warning(`1000건 초과${countMsg}로 일부만 포함되었습니다. 필터를 좁혀 다시 시도하세요.`);
       }
       triggerDownload(blob, 'analyses.json');
     } catch {
@@ -192,6 +204,21 @@ export default function ImageAnalysisPage() {
               onChange={(e) => setDeviceIdInput(e.target.value)}
             />
           </div>
+
+          <Select
+            value={status}
+            onValueChange={(v) => { setStatus(v === '__ALL__' ? '' : v); setPage(0); }}
+          >
+            <SelectTrigger className="w-[120px] h-10 text-sm border-gray-200">
+              <SelectValue placeholder="상태" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__ALL__">전체 상태</SelectItem>
+              {ANALYSIS_STATUS_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Select
             value={countryCode}
@@ -334,6 +361,7 @@ export default function ImageAnalysisPage() {
               <AdminTableHeaderRow>
                 <AdminTableHead className="px-6 py-4">디바이스 ID</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">국가</AdminTableHead>
+                <AdminTableHead className="px-6 py-4">상태</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">분석 일시</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">이미지 처리</AdminTableHead>
                 <AdminTableHead className="px-6 py-4">OCR</AdminTableHead>
@@ -347,14 +375,14 @@ export default function ImageAnalysisPage() {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center text-sm text-gray-400">
+                  <td colSpan={11} className="px-6 py-12 text-center text-sm text-gray-400">
                     불러오는 중...
                   </td>
                 </tr>
               ) : records.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center text-sm text-gray-400">
-                    {deviceId || countryCode || startDate || endDate || latencyType
+                  <td colSpan={11} className="px-6 py-12 text-center text-sm text-gray-400">
+                    {deviceId || status || countryCode || startDate || endDate || latencyType
                       ? '검색 결과가 없습니다.'
                       : '분석 데이터가 없습니다.'}
                   </td>
@@ -370,6 +398,16 @@ export default function ImageAnalysisPage() {
                         <span>{countryCodeToFlag(record.countryCode)}</span>
                         <span>{record.countryName}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-[600] ${
+                        record.status === 'COMPLETED' ? 'bg-green-50 text-green-700' :
+                        record.status === 'FAILED' ? 'bg-red-50 text-red-600' :
+                        record.status === 'PROCESSING' ? 'bg-blue-50 text-blue-600' :
+                        'bg-gray-100 text-gray-500'
+                      }`}>
+                        {ANALYSIS_STATUS_OPTIONS.find((o) => o.value === record.status)?.label ?? record.status}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                       {formatDateTime(record.insDttm)}

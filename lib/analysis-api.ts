@@ -60,7 +60,8 @@ export const analysisApi = {
     );
     if (!res.ok) throw new Error('다운로드에 실패했습니다.');
     const truncated = res.headers.get('X-Truncated') === 'true';
+    const totalCount = res.headers.get('X-Total-Count');
     const blob = await res.blob();
-    return { blob, truncated };
+    return { blob, truncated, totalCount: totalCount ? Number(totalCount) : undefined };
   },
 };
