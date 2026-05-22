@@ -9,7 +9,6 @@ import '@/components/keenicons/assets/styles.css';
 import { Metadata } from 'next';
 import { AdminAuthProvider } from '@/providers/admin-auth-provider';
 import { I18nProvider } from '@/providers/i18n-provider';
-// import { ModulesProvider } from '@/providers/modules-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 
@@ -17,8 +16,13 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Metronic',
-    default: 'Metronic', // a default is required when creating a template
+    template: '%s | Tripflex',
+    default: 'Tripflex',
+  },
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
   },
 };
 
@@ -41,10 +45,8 @@ export default async function RootLayout({
               <ThemeProvider>
                 <I18nProvider>
                   <TooltipsProvider>
-                    {/* <ModulesProvider> */}
                     <Suspense>{children}</Suspense>
                     <Toaster />
-                    {/* </ModulesProvider> */}
                   </TooltipsProvider>
                 </I18nProvider>
               </ThemeProvider>

@@ -1,6 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
-const { faker } = require('@faker-js/faker');
 const prisma = new PrismaClient({ log: ['query', 'info', 'warn', 'error'] });
 
 async function main() {
@@ -8,54 +7,51 @@ async function main() {
 
   await prisma.$transaction(
     async (tx) => {
-      // Ensure the owner role exists
       const ownerRole = await tx.userRole.upsert({
         where: { slug: 'owner' },
-        update: {}, // No updates needed, ensures idempotency
+        update: {},
         create: {
           slug: 'owner',
           name: 'Owner',
           description: 'The default system role with full access.',
           isProtected: true,
-          isDefault: false, // Optional: set to false if it's not the default role
+          isDefault: false,
         },
       });
 
-      // Create the owner user
       const ownerPassword = await bcrypt.hash('123456', 10);
       const demoPassword = await bcrypt.hash('demo123', 10);
 
-      const ownerUser = await tx.user.upsert({
+      await tx.user.upsert({
         where: { email: 'owner@example.com' },
-        update: {}, // No updates needed, ensures idempotency
+        update: {},
         create: {
           email: 'owner@example.com',
           name: 'System Owner',
           password: ownerPassword,
           roleId: ownerRole.id,
-          avatar: null, // Optional: Add avatar URL if available
-          emailVerifiedAt: new Date(), // Optional: Mark email as verified
+          avatar: null,
+          emailVerifiedAt: new Date(),
           status: 'ACTIVE',
         },
       });
 
-      const demoUser = await tx.user.upsert({
-        where: { email: 'demo@kt.com' },
-        update: {}, // No updates needed, ensures idempotency
+      await tx.user.upsert({
+        where: { email: 'demo@tripflex.com' },
+        update: {},
         create: {
           isProtected: true,
-          email: 'demo@shoplit.com',
+          email: 'demo@tripflex.com',
           name: 'Demo',
           password: demoPassword,
           roleId: ownerRole.id,
-          avatar: null, // Optional: Add avatar URL if available
-          emailVerifiedAt: new Date(), // Optional: Mark email as verified
+          avatar: null,
+          emailVerifiedAt: new Date(),
           status: 'ACTIVE',
         },
       });
 
-      // Seed UserRoles
-      const defaultRole = await tx.userRole.create({
+      await tx.userRole.create({
         data: {
           slug: 'member',
           name: 'Member',
@@ -66,10 +62,9 @@ async function main() {
         },
       });
 
-      // Settings
-      tx.setting.create({
+      await tx.systemSetting.create({
         data: {
-          name: 'Metronic',
+          name: 'Tripflex',
         },
       });
 
@@ -84,7 +79,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('Error during seeding:', e);
+    console.error('Error during setup:', e);
     process.exit(1);
   })
   .finally(async () => {

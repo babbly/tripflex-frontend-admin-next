@@ -227,10 +227,9 @@ async function main() {
 
       await Promise.all(systemLogPromises);
 
-      // Seed Settings
       await tx.systemSetting.create({
         data: {
-          name: 'Metronic',
+          name: 'Tripflex',
         },
       });
       console.log('Settings seeded.');

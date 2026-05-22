@@ -24,8 +24,8 @@ export async function sendEmail({
   content = {},
 }: SendEmailProps) {
   const { title, subtitle, description, buttonLabel, buttonUrl } = content;
+  const senderName = process.env.SMTP_SENDER || 'Tripflex';
 
-  // Build the email HTML template with inline conditions for each section.
   const emailHtml =
     html ??
     `
@@ -40,13 +40,11 @@ export async function sendEmail({
             <tr>
               <td align="center">
                 <table role="presentation" width="600" border="0" cellspacing="0" cellpadding="5" style="background-color: #ffffff;">
-                  <!-- Header -->
                   <tr>
                     <td align="center" style="background-color: #ffffff; color: #333; padding: 20px; text-align: center;">
-                      <h1 style="margin: 0; font-size: 20px;">Shoplit</h1>
+                      <h1 style="margin: 0; font-size: 20px;">${senderName}</h1>
                     </td>
                   </tr>
-                  <!-- Content -->
                   <tr>
                     <td style="padding: 20px; color: #333;">
                       ${title ? `<h2 style="margin-top: 0; font-size: 20px;">${title}</h2>` : ''}
@@ -64,11 +62,10 @@ export async function sendEmail({
                       ${description ? `<p style="margin: 20px 0; font-size: 16px;">${description}</p>` : ''}
                       <p style="margin: 10px 0; font-size: 16px;">
                         Thank you,<br />
-                        Shoplit Team
+                        ${senderName} Team
                       </p>
                     </td>
                   </tr>
-                  <!-- Footer (Optional) -->
                 </table>
               </td>
             </tr>
@@ -79,25 +76,18 @@ export async function sendEmail({
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT) || 465,
-    secure: true, // true for port 465, false for other ports
+    secure: true,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
   });
 
-  const mailOptions = {
-    from: `${process.env.SMTP_SENDER} <${process.env.SMTP_FROM}>`,
+  await transporter.sendMail({
+    from: `${senderName} <${process.env.SMTP_FROM}>`,
     to,
     subject,
     text,
     html: emailHtml,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${to}`);
-  } catch (error) {
-    console.error(`Error sending email: ${error}`);
-  }
+  });
 }

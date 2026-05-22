@@ -1,5 +1,4 @@
 'use client';
-'use client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {
@@ -107,7 +106,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   }, []);
 
-  // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     () => ({ getOption, setOption, storeOption, settings }),
     [getOption, setOption, storeOption, settings],
