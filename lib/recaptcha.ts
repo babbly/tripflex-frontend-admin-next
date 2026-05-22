@@ -7,12 +7,14 @@ interface ReCaptchaVerifyResponse {
   'error-codes'?: string[];
 }
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export async function verifyRecaptchaToken(token: string): Promise<boolean> {
   try {
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
     if (!secretKey) {
-      console.error('RECAPTCHA_SECRET_KEY is not set');
+      if (isDev) console.error('RECAPTCHA_SECRET_KEY is not set');
       return false;
     }
 
@@ -30,13 +32,13 @@ export async function verifyRecaptchaToken(token: string): Promise<boolean> {
     const data: ReCaptchaVerifyResponse = await response.json();
 
     if (!data.success) {
-      console.error('reCAPTCHA verification failed:', data['error-codes']);
+      if (isDev) console.error('reCAPTCHA verification failed:', data['error-codes']);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error verifying reCAPTCHA token:', error);
+    if (isDev) console.error('Error verifying reCAPTCHA token:', error);
     return false;
   }
 }

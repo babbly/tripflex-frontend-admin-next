@@ -59,7 +59,7 @@ export function RecaptchaPopover({
       }
       onVerify(token);
     } catch (error) {
-      console.error('Error getting reCAPTCHA token:', error);
+      if (process.env.NODE_ENV === 'development') console.error('Error getting reCAPTCHA token:', error);
       toast.custom(
         () => (
           <Alert variant="mono" icon="destructive">

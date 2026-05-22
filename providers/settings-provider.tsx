@@ -49,7 +49,7 @@ function storeLeaf(path: string, value: unknown) {
       JSON.stringify(value),
     );
   } catch (err) {
-    console.error('LocalStorage write error:', err);
+    if (process.env.NODE_ENV === 'development') console.error('LocalStorage write error:', err);
   }
 }
 
@@ -59,7 +59,7 @@ function getLeafFromStorage(path: string): any {
     const item = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}${path}`);
     return item ? JSON.parse(item) : undefined;
   } catch (err) {
-    console.error('LocalStorage read error:', err);
+    if (process.env.NODE_ENV === 'development') console.error('LocalStorage read error:', err);
     return undefined;
   }
 }

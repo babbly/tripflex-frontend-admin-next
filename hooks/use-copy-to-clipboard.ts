@@ -28,7 +28,9 @@ export function useCopyToClipboard({
       setTimeout(() => {
         setIsCopied(false);
       }, timeout);
-    }, console.error);
+    }, (error) => {
+      if (process.env.NODE_ENV === 'development') console.error(error);
+    });
   };
 
   return { isCopied, copyToClipboard };

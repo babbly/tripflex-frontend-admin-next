@@ -39,6 +39,6 @@ export async function systemLog(
       },
     });
   } catch (error) {
-    console.error('[LOG] Failed to log activity:', error);
+    if (process.env.NODE_ENV === 'development') console.error('[LOG] Failed to log activity:', error);
   }
 }
