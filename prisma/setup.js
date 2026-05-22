@@ -19,8 +19,7 @@ async function main() {
         },
       });
 
-      const ownerPassword = await bcrypt.hash('123456', 10);
-      const demoPassword = await bcrypt.hash('demo123', 10);
+      const initialPassword = await bcrypt.hash('0000', 10);
 
       await tx.user.upsert({
         where: { email: 'owner@example.com' },
@@ -28,7 +27,7 @@ async function main() {
         create: {
           email: 'owner@example.com',
           name: 'System Owner',
-          password: ownerPassword,
+          password: initialPassword,
           roleId: ownerRole.id,
           avatar: null,
           emailVerifiedAt: new Date(),
@@ -43,7 +42,7 @@ async function main() {
           isProtected: true,
           email: 'demo@tripflex.com',
           name: 'Demo',
-          password: demoPassword,
+          password: initialPassword,
           roleId: ownerRole.id,
           avatar: null,
           emailVerifiedAt: new Date(),

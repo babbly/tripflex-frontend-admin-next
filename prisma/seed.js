@@ -27,8 +27,8 @@ async function main() {
       });
 
       // Create the owner user
-      const hashedPassword = await bcrypt.hash('12345', 10);
-      const demoPassword = await bcrypt.hash('demo123', 10);
+      const hashedPassword = await bcrypt.hash('0000', 10);
+      const demoPassword = await bcrypt.hash('0000', 10);
 
       await tx.user.upsert({
         where: { email: 'demo@kt.com' },
